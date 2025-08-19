@@ -102,18 +102,6 @@ function PersonalInfo() {
                             className="border-4 border-white shadow-lg"
                         />
                     </div>
-                    <div className="absolute right-6 top-6">
-                        <div className="bg-white/20 px-3 py-1 rounded-full text-white text-xs flex items-center">
-                            <span className="mr-2">
-                                {dataUser?.isActive === 'active' ? 'Đã xác thực' : 'Chưa xác thực'}
-                            </span>
-                            {dataUser?.isActive === 'active' ? (
-                                <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                            ) : (
-                                <ClockCircleOutlined style={{ color: '#faad14' }} />
-                            )}
-                        </div>
-                    </div>
                 </div>
             }
             actions={[

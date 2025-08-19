@@ -4,7 +4,7 @@ import { Dropdown, Menu, Avatar, Input, Empty } from 'antd';
 import { useStore } from '../hooks/useStore';
 import { useState, useEffect, useRef } from 'react';
 import useDebounce from '../hooks/useDebounce';
-import { requestReadAllNotication, requestSearchProduct } from '../config/request';
+import { requestLogout, requestReadAllNotication, requestSearchProduct } from '../config/request';
 import moment from 'moment';
 
 function Header() {
@@ -26,6 +26,19 @@ function Header() {
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    const handleLogout = async () => {
+        try {
+            await requestLogout();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+
+            navigate('/');
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -132,7 +145,7 @@ function Header() {
                 },
                 {
                     key: 'logout',
-                    label: <span onClick={() => console.log('Logout')}>Đăng xuất</span>,
+                    label: <span onClick={handleLogout}>Đăng xuất</span>,
                 },
             ]}
         />

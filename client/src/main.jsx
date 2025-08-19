@@ -7,14 +7,14 @@ import { routes } from './routes/index.jsx';
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-        <Provider>
-            <Router>
+        <Router>
+            <Provider>
                 <Routes>
                     {routes.map((route, index) => (
                         <Route key={index} path={route.path} element={route.component} />
                     ))}
                 </Routes>
-            </Router>
-        </Provider>
+            </Provider>
+        </Router>
     </StrictMode>,
 );

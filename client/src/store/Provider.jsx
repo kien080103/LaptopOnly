@@ -4,6 +4,7 @@ import CryptoJS from 'crypto-js';
 import cookies from 'js-cookie';
 
 import { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
     requestAuth,
     requestGetCart,
@@ -17,10 +18,10 @@ import { ToastContainer } from 'react-toastify';
 import ChatMessage from '../utils/ChatMessage';
 
 import { io } from 'socket.io-client';
-import Chatbot from '../utils/Chatbot';
 import ModalAIReview from '../components/ModalAIReview';
 
 export function Provider({ children }) {
+    const location = useLocation();
     const [dataUser, setDataUser] = useState({});
     const [categories, setCategories] = useState([]);
     const [cart, setCart] = useState([]);
@@ -140,8 +141,7 @@ export function Provider({ children }) {
             >
                 {children}
                 <ToastContainer />
-                <Chatbot />
-                <ChatMessage />
+                {!location.pathname.includes('/admin') && <ChatMessage />}
                 <ModalAIReview
                     isOpen={isOpenModalAIReview}
                     idProductReview={idProductReview}

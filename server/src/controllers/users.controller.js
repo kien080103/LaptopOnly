@@ -1,6 +1,10 @@
 const modelUser = require('../models/users.model');
 const modelApiKey = require('../models/apiKey.model');
+const modelOtp = require('../models/otp.model');
+
 const { connect } = require('../config/connectDB');
+
+const sendMailForgotPassword = require('../utils/sendMailForgotPassword');
 
 const { AuthFailureError, BadRequestError } = require('../core/error.response');
 const { OK } = require('../core/success.response');

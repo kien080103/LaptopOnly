@@ -4,6 +4,7 @@ import CartUser from '../pages/Cart';
 import Category from '../pages/Category';
 import CheckOut from '../pages/CheckOut';
 import DetailProduct from '../pages/DetailProduct';
+import ForgotPassword from '../pages/ForgotPassword';
 import InfoUser from '../pages/InfoUser';
 import Login from '../pages/Login';
 import LoginAdmin from '../pages/LoginAdmin';
@@ -61,5 +62,9 @@ export const routes = [
     {
         path: '/category/:id',
         component: <Category />,
+    },
+    {
+        path: '/forgot-password',
+        component: <ForgotPassword />,
     },
 ];

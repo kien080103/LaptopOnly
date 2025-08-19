@@ -46,11 +46,6 @@ const User = connect.define(
             type: DataTypes.ENUM('google', 'email'),
             allowNull: false,
         },
-        isActive: {
-            type: DataTypes.ENUM('active', 'inactive'),
-            allowNull: false,
-            defaultValue: 'inactive',
-        },
         isOnline: {
             type: DataTypes.ENUM('online', 'offline'),
             allowNull: false,

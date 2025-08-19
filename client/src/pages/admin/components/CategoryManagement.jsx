@@ -138,12 +138,32 @@ function CategoryManagement() {
         },
     ];
 
+    const handleSearch = (value) => {
+        if (value === '') {
+            const fetchCategories = async () => {
+                const res = await requestGetCategories();
+                setCategories(res.metadata || []);
+            };
+            fetchCategories();
+            return;
+        }
+        const filteredCategories = categories.filter((category) =>
+            category.nameCategory.toLowerCase().includes(value.toLowerCase()),
+        );
+        setCategories(filteredCategories);
+    };
+
     return (
         <>
             <div className="p-4">
-                <div className="text-2xl font-bold">Quản lý danh mục</div>
+                <div className="text-2xl font-bold mb-4">Quản lý danh mục</div>
                 <Space>
-                    <Input placeholder="Tìm kiếm danh mục" prefix={<SearchOutlined />} style={{ width: 250 }} />
+                    <Input
+                        placeholder="Tìm kiếm danh mục"
+                        prefix={<SearchOutlined />}
+                        style={{ width: 250 }}
+                        onChange={(e) => handleSearch(e.target.value)}
+                    />
                     <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenAdd}>
                         Thêm danh mục
                     </Button>

@@ -11,7 +11,7 @@ const modelPayment = require('./payments.model');
 const modelMessage = require('./message.model');
 const modelPreviewProduct = require('./previewProduct.model');
 const modelNotication = require('./notication.model');
-
+const modelOtp = require('./otp.model');
 // Thiết lập mối quan hệ
 modelPayment.belongsTo(modelProduct, { foreignKey: 'productId', as: 'product' });
 modelProduct.hasMany(modelPayment, { foreignKey: 'productId' });
@@ -28,6 +28,7 @@ const sync = async () => {
     await modelMessage.sync({ alter: true });
     await modelPreviewProduct.sync({ alter: true });
     await modelNotication.sync({ alter: true });
+    await modelOtp.sync({ alter: true });
 };
 
 module.exports = sync;

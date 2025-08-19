@@ -279,7 +279,7 @@ function ProductManagement() {
 
             {/* Search & Actions */}
             <Card className="mb-4 shadow-sm">
-                <div className="flex flex-col sm:flex-row justify-between gap-3">
+                <div className="flex flex-col sm:flex-row justify-between gap-3 ">
                     <Input
                         size="lg"
                         placeholder="Tìm kiếm..."
@@ -313,7 +313,6 @@ function ProductManagement() {
                         size: 'large',
                         showQuickJumper: true,
                     }}
-                    className="custom-table text-sm"
                 />
             </Card>
 

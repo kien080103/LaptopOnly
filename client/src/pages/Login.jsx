@@ -130,9 +130,9 @@ function Login() {
                         </Button>
 
                         <div className="text-center">
-                            <a href="#" className="text-blue-600 hover:text-blue-700 text-sm">
+                            <Link to="/forgot-password" className="text-blue-600 hover:text-blue-700 text-sm">
                                 Quên mật khẩu?
-                            </a>
+                            </Link>
                         </div>
 
                         <div className="relative">

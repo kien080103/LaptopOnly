@@ -159,16 +159,6 @@ const Dashboard = () => {
                             Xin chào, chúc bạn một ngày làm việc hiệu quả!
                         </p>
                     </div>
-                    <div className="flex items-center space-x-4">
-                        <button className="flex items-center px-4 py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                            <Calendar className="w-4 h-4 mr-2 text-slate-500" />
-                            Hôm nay
-                        </button>
-                        <button className="flex items-center px-4 py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                            <Download className="w-4 h-4 mr-2 text-slate-500" />
-                            Tải báo cáo
-                        </button>
-                    </div>
                 </div>
             </div>
 
