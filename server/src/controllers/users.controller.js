@@ -1,5 +1,6 @@
 const modelUser = require('../models/users.model');
 const modelApiKey = require('../models/apiKey.model');
+const { connect } = require('../config/connectDB');
 
 const { AuthFailureError, BadRequestError } = require('../core/error.response');
 const { OK } = require('../core/success.response');
@@ -425,6 +426,239 @@ class controllerUser {
 
         await dataUser.save();
         new OK({ message: 'Tạo người dùng thành công' }).send(res);
+    }
+
+    async getStatistic(req, res) {
+        try {
+            const { Op } = require('sequelize');
+            const modelPayments = require('../models/payments.model');
+            const modelProducts = require('../models/products.model');
+
+            // 1. Thống kê tổng quan
+            const totalCustomers = await modelUser.count();
+            const totalOrders = await modelPayments.count();
+            const totalRevenue = await modelPayments.sum('totalPrice', {
+                where: { status: 'success' },
+            });
+            const totalProducts = await modelProducts.count();
+
+            // Tính tỷ lệ tăng trưởng (so với tháng trước)
+            const currentDate = new Date();
+            const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const firstDayOfLastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+            const lastDayOfLastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+
+            // Tính số khách hàng tháng này và tháng trước
+            const customersThisMonth = await modelUser.count({
+                where: {
+                    createdAt: {
+                        [Op.gte]: firstDayOfMonth,
+                    },
+                },
+            });
+            const customersLastMonth = await modelUser.count({
+                where: {
+                    createdAt: {
+                        [Op.between]: [firstDayOfLastMonth, lastDayOfLastMonth],
+                    },
+                },
+            });
+
+            // Tính số đơn hàng tháng này và tháng trước
+            const ordersThisMonth = await modelPayments.count({
+                where: {
+                    createdAt: {
+                        [Op.gte]: firstDayOfMonth,
+                    },
+                },
+            });
+            const ordersLastMonth = await modelPayments.count({
+                where: {
+                    createdAt: {
+                        [Op.between]: [firstDayOfLastMonth, lastDayOfLastMonth],
+                    },
+                },
+            });
+
+            // Tính doanh thu tháng này và tháng trước
+            const revenueThisMonth =
+                (await modelPayments.sum('totalPrice', {
+                    where: {
+                        status: 'success',
+                        createdAt: {
+                            [Op.gte]: firstDayOfMonth,
+                        },
+                    },
+                })) || 0;
+            const revenueLastMonth =
+                (await modelPayments.sum('totalPrice', {
+                    where: {
+                        status: 'success',
+                        createdAt: {
+                            [Op.between]: [firstDayOfLastMonth, lastDayOfLastMonth],
+                        },
+                    },
+                })) || 0;
+
+            // Tính số sản phẩm tháng này và tháng trước
+            const productsThisMonth = await modelProducts.count({
+                where: {
+                    createdAt: {
+                        [Op.gte]: firstDayOfMonth,
+                    },
+                },
+            });
+            const productsLastMonth = await modelProducts.count({
+                where: {
+                    createdAt: {
+                        [Op.between]: [firstDayOfLastMonth, lastDayOfLastMonth],
+                    },
+                },
+            });
+
+            // Tính tỷ lệ tăng trưởng
+            const customerGrowth =
+                customersLastMonth === 0 ? 100 : ((customersThisMonth - customersLastMonth) / customersLastMonth) * 100;
+            const orderGrowth =
+                ordersLastMonth === 0 ? 100 : ((ordersThisMonth - ordersLastMonth) / ordersLastMonth) * 100;
+            const revenueGrowth =
+                revenueLastMonth === 0 ? 100 : ((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100;
+            const productGrowth =
+                productsLastMonth === 0 ? 100 : ((productsThisMonth - productsLastMonth) / productsLastMonth) * 100;
+
+            // 2. Thống kê doanh thu theo tháng
+            const monthlyStats = await Promise.all(
+                Array.from({ length: 12 }, async (_, index) => {
+                    const month = index + 1;
+                    const startDate = new Date(currentDate.getFullYear(), month - 1, 1);
+                    const endDate = new Date(currentDate.getFullYear(), month, 0);
+
+                    const revenue =
+                        (await modelPayments.sum('totalPrice', {
+                            where: {
+                                status: 'success',
+                                createdAt: {
+                                    [Op.between]: [startDate, endDate],
+                                },
+                            },
+                        })) || 0;
+
+                    // Giả định lợi nhuận là 60% doanh thu
+                    const profit = revenue * 0.6;
+
+                    const orders = await modelPayments.count({
+                        where: {
+                            createdAt: {
+                                [Op.between]: [startDate, endDate],
+                            },
+                        },
+                    });
+
+                    return {
+                        month: `T${month}`,
+                        revenue: Math.round(revenue / 1000000), // Chuyển đổi sang triệu
+                        profit: Math.round(profit / 1000000), // Chuyển đổi sang triệu
+                        orders,
+                    };
+                }),
+            );
+
+            // 3. Top sản phẩm bán chạy
+            const topProducts = await modelPayments.findAll({
+                attributes: [
+                    'productId',
+                    [connect.fn('COUNT', connect.col('productId')), 'soldCount'],
+                    [connect.fn('SUM', connect.col('quantity')), 'totalQuantity'],
+                ],
+                where: { status: 'success' },
+                group: ['productId'],
+                order: [[connect.literal('totalQuantity'), 'DESC']],
+                limit: 4,
+                include: [
+                    {
+                        model: modelProducts,
+                        as: 'product',
+                        attributes: ['nameProduct'],
+                        required: true,
+                    },
+                ],
+            });
+
+            // 4. Đơn hàng gần đây
+            const recentOrders = await modelPayments.findAll({
+                attributes: ['id', 'fullName', 'totalPrice', 'status', 'createdAt'],
+                order: [['createdAt', 'DESC']],
+                limit: 4,
+                include: [
+                    {
+                        model: modelProducts,
+                        as: 'product',
+                        attributes: ['nameProduct'],
+                        required: true,
+                    },
+                ],
+            });
+
+            new OK({
+                message: 'Lấy thống kê thành công',
+                metadata: {
+                    stats: {
+                        customers: {
+                            count: totalCustomers,
+                            growth: parseFloat(customerGrowth.toFixed(2)),
+                            isPositive: customerGrowth > 0,
+                        },
+                        orders: {
+                            count: totalOrders,
+                            growth: parseFloat(orderGrowth.toFixed(2)),
+                            isPositive: orderGrowth > 0,
+                        },
+                        revenue: {
+                            count: totalRevenue,
+                            growth: parseFloat(revenueGrowth.toFixed(2)),
+                            isPositive: revenueGrowth > 0,
+                        },
+                        products: {
+                            count: totalProducts,
+                            growth: parseFloat(productGrowth.toFixed(2)),
+                            isPositive: productGrowth > 0,
+                        },
+                    },
+                    monthlyData: monthlyStats,
+                    topProducts: topProducts.map((product) => ({
+                        name: product.product.nameProduct,
+                        value: Math.round(
+                            (product.get('totalQuantity') /
+                                topProducts.reduce((sum, p) => sum + parseInt(p.get('totalQuantity')), 0)) *
+                                100,
+                        ),
+                    })),
+                    recentOrders: recentOrders.map((order) => ({
+                        id: order.id,
+                        customer: order.fullName,
+                        product: order.product.nameProduct,
+                        amount: order.totalPrice,
+                        status:
+                            order.status === 'success'
+                                ? 'Hoàn thành'
+                                : order.status === 'shipping'
+                                ? 'Đang giao'
+                                : order.status === 'confirm'
+                                ? 'Đang xử lý'
+                                : 'Chờ xử lý',
+                        avatar: order.fullName
+                            .split(' ')
+                            .map((name) => name[0])
+                            .join('')
+                            .slice(0, 2)
+                            .toUpperCase(),
+                    })),
+                },
+            }).send(res);
+        } catch (error) {
+            console.error('Error in getStatistic:', error);
+            throw new BadRequestError('Có lỗi xảy ra khi lấy thống kê');
+        }
     }
 }
 

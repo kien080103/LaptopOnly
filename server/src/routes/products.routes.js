@@ -27,5 +27,7 @@ router.post('/update', asyncHandler(controllerProducts.updateProduct));
 router.post('/delete', asyncHandler(controllerProducts.deleteProduct));
 
 router.get('/all', asyncHandler(controllerProducts.getAllProducts));
+router.get('/flash-sale', asyncHandler(controllerProducts.getProductFlashSale));
+router.get('/category', asyncHandler(controllerProducts.getProductByCategory));
 
 module.exports = router;

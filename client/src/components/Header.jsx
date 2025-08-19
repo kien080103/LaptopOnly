@@ -1,13 +1,22 @@
-import { Search, ShoppingCart, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Search, ShoppingCart, User, Bell } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Dropdown, Menu, Avatar, Input, Empty } from 'antd';
 import { useStore } from '../hooks/useStore';
 import { useState, useEffect, useRef } from 'react';
 import useDebounce from '../hooks/useDebounce';
-import { requestSearchProduct } from '../config/request';
+import { requestReadAllNotication, requestSearchProduct } from '../config/request';
+import moment from 'moment';
 
 function Header() {
-    const { dataUser, cart } = useStore();
+    const { dataUser, cart, notication, fetchNotication, newNotication, setNotication } = useStore();
+
+    useEffect(() => {
+        if (newNotication) {
+            setNotication((prev) => [...prev, newNotication]);
+        }
+    }, [newNotication]);
+
+    const navigate = useNavigate();
 
     const [search, setSearch] = useState('');
     const [showResults, setShowResults] = useState(false);
@@ -51,6 +60,64 @@ function Header() {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    // Mark notification as read
+    const handleReadNotification = async () => {
+        try {
+            await requestReadAllNotication();
+            await fetchNotication();
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleNavigate = () => {
+        navigate('/order');
+    };
+
+    const notificationMenu = (
+        <Menu
+            className="w-80"
+            items={[
+                {
+                    key: 'title',
+                    label: (
+                        <div className="flex justify-between items-center px-2 py-2 border-b">
+                            <span className="font-bold">Thông báo</span>
+                            {notication.some((n) => n.isRead === '0') && (
+                                <span
+                                    className="text-xs text-blue-500 cursor-pointer hover:underline"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleReadNotification();
+                                    }}
+                                >
+                                    Đánh dấu tất cả đã đọc
+                                </span>
+                            )}
+                        </div>
+                    ),
+                    type: 'group',
+                },
+                ...notication.map((notification) => ({
+                    key: notification.id,
+                    label: (
+                        <div
+                            className={`p-2 border-b ${notification.isRead === '0' ? 'bg-gray-50' : ''}`}
+                            onClick={() => handleNavigate()}
+                        >
+                            <div className="flex justify-between">
+                                <span className="font-medium text-sm">{notification.content}</span>
+                                <span className="text-xs text-gray-500">
+                                    {moment(notification.createdAt).format('DD/MM/YYYY')}
+                                </span>
+                            </div>
+                        </div>
+                    ),
+                })),
+            ]}
+        />
+    );
 
     const userMenu = (
         <Menu
@@ -182,6 +249,18 @@ function Header() {
                             </span>
                         </button>
                     </Link>
+
+                    {/* Notification Bell */}
+                    <Dropdown overlay={notificationMenu} placement="bottomRight" arrow trigger={['click']}>
+                        <button className="relative flex items-center space-x-1 text-white hover:text-gray-200 transition-colors bg-[#00000000] border border-white rounded-full px-3 py-2 hover:bg-white hover:text-red-600 cursor-pointer">
+                            <Bell className="w-5 h-5" />
+                            {notication.filter((n) => n.isRead === '0').length > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-yellow-400 text-red-600 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    {notication.filter((n) => n.isRead === '0').length}
+                                </span>
+                            )}
+                        </button>
+                    </Dropdown>
 
                     {/* User Section */}
                     {dataUser.id ? (

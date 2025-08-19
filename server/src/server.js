@@ -13,6 +13,8 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const route = require('./routes/index.routes.js');
 const path = require('path');
+const Chatbot = require('./utils/Chatbot');
+const { analyzeProductForPurpose } = require('./utils/AIReview');
 
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(bodyParser.json());
@@ -26,6 +28,11 @@ connectDB();
 sync();
 
 route(app);
+
+app.post('/api/review', async (req, res) => {
+    const reviewData = await analyzeProductForPurpose(req.body);
+    return res.status(200).json({ reviewData });
+});
 
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;

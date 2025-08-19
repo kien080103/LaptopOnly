@@ -17,20 +17,26 @@ const createApiKey = async (userId) => {
 };
 
 const createToken = async (payload) => {
-    const findApiKey = await modelApiKey.findOne({ where: { userId: payload.id } });
+    const findApiKey = await modelApiKey.findOne({
+        where: { userId: payload.id },
+        order: [['createdAt', 'DESC']],
+    });
 
     if (!findApiKey?.privateKey) {
         throw new Error('Private key not found for user');
     }
 
     return jwt.sign(payload, findApiKey.privateKey, {
-        algorithm: 'RS256', // Quan trọng: Phải chỉ định thuật toán khi dùng RSA
+        algorithm: 'RS256',
         expiresIn: '15m',
     });
 };
 
 const createRefreshToken = async (payload) => {
-    const findApiKey = await modelApiKey.findOne({ where: { userId: payload.id } });
+    const findApiKey = await modelApiKey.findOne({
+        where: { userId: payload.id },
+        order: [['createdAt', 'DESC']],
+    });
 
     if (!findApiKey?.privateKey) {
         throw new Error('Private key not found for user');
@@ -45,7 +51,10 @@ const createRefreshToken = async (payload) => {
 const verifyToken = async (token) => {
     try {
         const { id } = jwtDecode(token);
-        const findApiKey = await modelApiKey.findOne({ where: { userId: id } });
+        const findApiKey = await modelApiKey.findOne({
+            where: { userId: id },
+            order: [['createdAt', 'DESC']],
+        });
 
         if (!findApiKey) {
             throw new AuthFailureError('Vui lòng đăng nhập lại');

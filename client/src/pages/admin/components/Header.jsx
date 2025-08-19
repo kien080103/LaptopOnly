@@ -1,35 +1,78 @@
-import { Layout, Button, Badge, Avatar, Dropdown } from 'antd';
-import { MenuUnfoldOutlined, MenuFoldOutlined, BellOutlined, UserOutlined } from '@ant-design/icons';
+import { Layout, Button, Badge, Avatar, Dropdown, Input, Space } from 'antd';
+import {
+    MenuUnfoldOutlined,
+    MenuFoldOutlined,
+    BellOutlined,
+    UserOutlined,
+    SearchOutlined,
+    SettingOutlined,
+    LogoutOutlined,
+    UserSwitchOutlined,
+} from '@ant-design/icons';
 
 const { Header: AntHeader } = Layout;
+const { Search } = Input;
 
 function Header({ collapsed, setCollapsed, token }) {
     const notificationItems = [
         {
             key: '1',
-            label: 'Đơn hàng mới #125 từ Nguyễn Văn An',
+            label: (
+                <div className="py-1">
+                    <div className="font-medium">Đơn hàng mới #125</div>
+                    <div className="text-xs opacity-70">Từ Nguyễn Văn An - 2 phút trước</div>
+                </div>
+            ),
         },
         {
             key: '2',
-            label: 'Đơn hàng #123 đã được giao thành công',
+            label: (
+                <div className="py-1">
+                    <div className="font-medium">Đơn hàng #123 đã giao thành công</div>
+                    <div className="text-xs opacity-70">20 phút trước</div>
+                </div>
+            ),
         },
         {
             key: '3',
-            label: '5 sản phẩm sắp hết hàng',
+            label: (
+                <div className="py-1">
+                    <div className="font-medium">5 sản phẩm sắp hết hàng</div>
+                    <div className="text-xs opacity-70">1 giờ trước</div>
+                </div>
+            ),
+        },
+        {
+            type: 'divider',
+        },
+        {
+            key: '4',
+            label: <div className="text-center text-blue-500 font-medium">Xem tất cả</div>,
         },
     ];
 
     const userMenuItems = [
         {
             key: '1',
+            icon: <UserOutlined />,
             label: 'Thông tin cá nhân',
         },
         {
             key: '2',
+            icon: <SettingOutlined />,
             label: 'Cài đặt',
         },
         {
             key: '3',
+            icon: <UserSwitchOutlined />,
+            label: 'Chuyển sang người dùng',
+        },
+        {
+            type: 'divider',
+        },
+        {
+            key: '4',
+            icon: <LogoutOutlined />,
             label: 'Đăng xuất',
             danger: true,
         },
@@ -39,63 +82,16 @@ function Header({ collapsed, setCollapsed, token }) {
         <AntHeader
             className="flex items-center justify-between px-6"
             style={{
-                background: token.colorBgContainer,
-                height: 64,
-                borderBottom: `1px solid ${token.colorBorderSecondary}`,
-                padding: '0 16px',
+                background: 'white',
+                height: 72,
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)',
+                padding: '0 24px',
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
             }}
-        >
-            <Button
-                type="text"
-                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                onClick={() => setCollapsed(!collapsed)}
-                className="text-lg"
-            />
-
-            <div className="flex items-center gap-6">
-                <Dropdown
-                    menu={{
-                        items: notificationItems,
-                    }}
-                    placement="bottomRight"
-                    arrow
-                >
-                    <Badge count={3} size="small">
-                        <Button
-                            type="text"
-                            shape="circle"
-                            icon={<BellOutlined />}
-                            className="flex items-center justify-center text-lg"
-                        />
-                    </Badge>
-                </Dropdown>
-
-                <Dropdown
-                    menu={{
-                        items: userMenuItems,
-                    }}
-                    placement="bottomRight"
-                >
-                    <div className="flex items-center gap-2 cursor-pointer">
-                        <Avatar
-                            size={32}
-                            className="border-2"
-                            style={{ borderColor: token.colorPrimary }}
-                            icon={<UserOutlined />}
-                        />
-                        <div>
-                            <div className="font-medium text-sm">Admin</div>
-                            <div className="text-xs opacity-60">Quản trị viên</div>
-                        </div>
-                    </div>
-                </Dropdown>
-            </div>
-        </AntHeader>
+        ></AntHeader>
     );
 }
 
 export default Header;
-
-
-
-

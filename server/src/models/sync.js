@@ -6,9 +6,15 @@ const modelApikey = require('./apiKey.model');
 const modelCategory = require('./category.model');
 const modelProduct = require('./products.model');
 const modelCart = require('./cart.model');
-const modelCoupon = require('./coupon.model');
+const modelCoupon = require('./counpon.model');
 const modelPayment = require('./payments.model');
 const modelMessage = require('./message.model');
+const modelPreviewProduct = require('./previewProduct.model');
+const modelNotication = require('./notication.model');
+
+// Thiết lập mối quan hệ
+modelPayment.belongsTo(modelProduct, { foreignKey: 'productId', as: 'product' });
+modelProduct.hasMany(modelPayment, { foreignKey: 'productId' });
 
 const sync = async () => {
     await connect.sync({ alter: true });
@@ -20,6 +26,8 @@ const sync = async () => {
     await modelCoupon.sync({ alter: true });
     await modelPayment.sync({ alter: true });
     await modelMessage.sync({ alter: true });
+    await modelPreviewProduct.sync({ alter: true });
+    await modelNotication.sync({ alter: true });
 };
 
 module.exports = sync;

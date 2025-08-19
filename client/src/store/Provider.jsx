@@ -4,20 +4,34 @@ import CryptoJS from 'crypto-js';
 import cookies from 'js-cookie';
 
 import { useEffect, useState, useRef } from 'react';
-import { requestAuth, requestGetCart, requestGetCategories, requestGetFavouriteProducts } from '../config/request';
+import {
+    requestAuth,
+    requestGetCart,
+    requestGetCategories,
+    requestGetFavouriteProducts,
+    requestGetNoticationByUserId,
+    requestReview,
+} from '../config/request';
 import { ToastContainer } from 'react-toastify';
+
 import ChatMessage from '../utils/ChatMessage';
 
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import Chatbot from '../utils/Chatbot';
+import ModalAIReview from '../components/ModalAIReview';
 
 export function Provider({ children }) {
     const [dataUser, setDataUser] = useState({});
     const [categories, setCategories] = useState([]);
     const [cart, setCart] = useState([]);
     const [favorites, setFavorites] = useState([]);
+    const [notication, setNotication] = useState([]);
+    const [isOpenModalAIReview, setIsOpenModalAIReview] = useState(false);
+    const [idProductReview, setIdProductReview] = useState('');
 
     const [newMessageAdmin, setNewMessageAdmin] = useState({});
     const [newMessageUser, setNewMessageUser] = useState({});
+    const [newNotication, setNewNotication] = useState({});
 
     const socketRef = useRef(null);
 
@@ -56,6 +70,11 @@ export function Provider({ children }) {
         }
     };
 
+    const fetchNotication = async () => {
+        const res = await requestGetNoticationByUserId();
+        setNotication(res.metadata);
+    };
+
     useEffect(() => {
         const socket = io(import.meta.env.VITE_API_URL, {
             withCredentials: true,
@@ -65,6 +84,10 @@ export function Provider({ children }) {
 
         socket.on('newMessage', (message) => {
             setNewMessageAdmin(message);
+        });
+
+        socket.on('update-status', (notication) => {
+            setNewNotication(notication);
         });
 
         socket.on('newMessageUser', (message) => {
@@ -86,7 +109,13 @@ export function Provider({ children }) {
         fetchAuth();
         fetchCart();
         fetchFavorites();
+        fetchNotication();
     }, []);
+
+    const onClose = () => {
+        setIsOpenModalAIReview(false);
+        setIdProductReview('');
+    };
 
     return (
         <>
@@ -100,11 +129,24 @@ export function Provider({ children }) {
                     fetchFavorites,
                     newMessageAdmin,
                     newMessageUser,
+                    notication,
+                    fetchNotication,
+                    newNotication,
+                    setNotication,
+                    setIsOpenModalAIReview,
+                    idProductReview,
+                    setIdProductReview,
                 }}
             >
                 {children}
                 <ToastContainer />
+                <Chatbot />
                 <ChatMessage />
+                <ModalAIReview
+                    isOpen={isOpenModalAIReview}
+                    idProductReview={idProductReview}
+                    setIsOpenModalAIReview={setIsOpenModalAIReview}
+                />
             </Context.Provider>
         </>
     );

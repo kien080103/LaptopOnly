@@ -145,7 +145,7 @@ function ModernChatMessage() {
         <div className="flex items-end gap-3 mb-6">
             <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-md">
                 <img
-                    src="https://scontent.fhan14-5.fna.fbcdn.net/v/t39.30808-1/532052457_2235732373565841_2951300014405798204_n.jpg?..."
+                    src="https://cdn2.cellphones.com.vn/x/media/favicon/default/logo-cps.png"
                     alt="Support"
                     className="w-full h-full object-cover"
                 />
@@ -192,7 +192,7 @@ function ModernChatMessage() {
                                 <div className="relative">
                                     <div className="w-10 h-10 rounded-full overflow-hidden shadow-md">
                                         <img
-                                            src="https://scontent.fhan14-5.fna.fbcdn.net/v/t39.30808-1/532052457_2235732373565841_2951300014405798204_n.jpg?..."
+                                            src="https://cdn2.cellphones.com.vn/x/media/favicon/default/logo-cps.png"
                                             alt="Support"
                                             className="w-full h-full object-cover"
                                         />
@@ -200,7 +200,7 @@ function ModernChatMessage() {
                                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-900">Sarah</h3>
+                                    <h3 className="font-semibold text-gray-900">Quản lý Admin</h3>
                                     <p className="text-sm text-green-600 font-medium">Đang hoạt động</p>
                                 </div>
                             </div>

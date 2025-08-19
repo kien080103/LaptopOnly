@@ -7,6 +7,8 @@ const paymentsRoutes = require('./payments.routes');
 const favoriteRoutes = require('./favouriteProduct.routes');
 const websiteRoutes = require('./website.routes');
 const messageRoutes = require('./message.routes');
+const previewProductRoutes = require('./previewProduct.routes');
+const noticationRoutes = require('./notication.routes');
 
 function routes(app) {
     app.use('/api/user', userRoutes);
@@ -18,6 +20,8 @@ function routes(app) {
     app.use('/api/favourite', favoriteRoutes);
     app.use('/api/website', websiteRoutes);
     app.use('/api/message', messageRoutes);
+    app.use('/api/preview-product', previewProductRoutes);
+    app.use('/api/notication', noticationRoutes);
 }
 
 module.exports = routes;

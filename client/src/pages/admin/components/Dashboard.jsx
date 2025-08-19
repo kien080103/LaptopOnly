@@ -1,315 +1,377 @@
-import { Typography, Row, Col, Card, Select, Button } from 'antd';
+import React, { useState, useEffect } from 'react';
 import {
-    ArrowUpOutlined,
-    ArrowDownOutlined,
-    TeamOutlined,
-    ShoppingCartOutlined,
-    GiftOutlined,
-} from '@ant-design/icons';
-import { Area, Column } from '@ant-design/charts';
+    LineChart,
+    Line,
+    AreaChart,
+    Area,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    PieChart,
+    Pie,
+    Cell,
+} from 'recharts';
+import {
+    TrendingUp,
+    TrendingDown,
+    Users,
+    ShoppingCart,
+    DollarSign,
+    Package,
+    Eye,
+    ChevronRight,
+    Calendar,
+    Filter,
+    Download,
+    Sparkles,
+    Activity,
+    Star,
+} from 'lucide-react';
+import { requestGetStatistic } from '../../../config/request';
 
-const { Title, Text } = Typography;
-const { Option } = Select;
+const Dashboard = () => {
+    const [activeTab, setActiveTab] = useState('month');
+    const [hoveredCard, setHoveredCard] = useState(null);
+    const [animateNumbers, setAnimateNumbers] = useState(false);
 
-function Dashboard({ token }) {
-    // Mock data for statistics
-    const stats = {
-        customers: {
-            count: 3782,
-            growth: 11.01,
-            isPositive: true,
-        },
-        orders: {
-            count: 5359,
-            growth: 9.05,
-            isPositive: false,
-        },
-        revenue: {
-            count: 192450000,
-            growth: 15.2,
-            isPositive: true,
-        },
-        monthlySales: [
-            { month: 'T1', sales: 120 },
-            { month: 'T2', sales: 380 },
-            { month: 'T3', sales: 190 },
-            { month: 'T4', sales: 340 },
-            { month: 'T5', sales: 180 },
-            { month: 'T6', sales: 190 },
-            { month: 'T7', sales: 320 },
-            { month: 'T8', sales: 90 },
-            { month: 'T9', sales: 190 },
-            { month: 'T10', sales: 390 },
-            { month: 'T11', sales: 280 },
-            { month: 'T12', sales: 100 },
-        ],
-    };
+    useEffect(() => {
+        setAnimateNumbers(true);
+    }, []);
 
-    // Recent orders
-    const recentOrders = [
-        { id: 1, customer: 'Nguyễn Văn An', product: 'MacBook Pro M3', amount: 45990000, status: 'Hoàn thành' },
-        { id: 2, customer: 'Trần Thị Bình', product: 'Dell XPS 15', amount: 36990000, status: 'Đang xử lý' },
-        { id: 3, customer: 'Lê Minh Cường', product: 'Lenovo ThinkPad', amount: 29990000, status: 'Chờ xử lý' },
-    ];
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({
+        customers: { count: 0, growth: 0, isPositive: true },
+        orders: { count: 0, growth: 0, isPositive: true },
+        revenue: { count: 0, growth: 0, isPositive: true },
+        products: { count: 0, growth: 0, isPositive: true },
+    });
+    const [monthlyData, setMonthlyData] = useState([]);
+    const [recentOrders, setRecentOrders] = useState([]);
+    const [topProducts, setTopProducts] = useState([]);
 
-    // Area chart data
-    const areaData = Array.from({ length: 50 }, (_, i) => ({
-        date: `2023-${Math.floor(i / 4) + 1}-${(i % 4) * 7 + 1}`,
-        value: Math.floor(Math.random() * 100) + 150,
-        category: 'Doanh thu',
-    })).concat(
-        Array.from({ length: 50 }, (_, i) => ({
-            date: `2023-${Math.floor(i / 4) + 1}-${(i % 4) * 7 + 1}`,
-            value: Math.floor(Math.random() * 70) + 30,
-            category: 'Lợi nhuận',
-        })),
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+                const response = await requestGetStatistic();
+                setStats(response.metadata.stats);
+                setMonthlyData(response.metadata.monthlyData);
+                setRecentOrders(response.metadata.recentOrders);
+                setTopProducts(
+                    response.metadata.topProducts.map((product, index) => ({
+                        ...product,
+                        color: colors[index % colors.length],
+                    })),
+                );
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    const StatCard = ({ title, count, growth, isPositive, icon: Icon, gradient, delay = 0 }) => (
+        <div
+            className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-6 text-white shadow-xl transition-all duration-500 hover:scale-105 hover:shadow-2xl cursor-pointer group`}
+            style={{ animationDelay: `${delay}ms` }}
+            onMouseEnter={() => setHoveredCard(title)}
+            onMouseLeave={() => setHoveredCard(null)}
+        >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <Icon className="w-6 h-6" />
+                    </div>
+                    <div
+                        className={`flex items-center text-sm font-medium ${
+                            isPositive ? 'text-green-200' : 'text-red-200'
+                        }`}
+                    >
+                        {isPositive ? (
+                            <TrendingUp className="w-4 h-4 mr-1" />
+                        ) : (
+                            <TrendingDown className="w-4 h-4 mr-1" />
+                        )}
+                        {Math.abs(growth)}%
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <p className="text-sm font-medium opacity-80">{title}</p>
+                    <p
+                        className={`text-3xl font-bold transition-all duration-1000 ${
+                            animateNumbers ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                        }`}
+                    >
+                        {title === 'Doanh thu' ? `${(count / 1000000).toFixed(0)}M đ` : count.toLocaleString('vi-VN')}
+                    </p>
+                </div>
+            </div>
+            <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-white/5 rounded-full"></div>
+            <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-white/10 rounded-full"></div>
+        </div>
     );
 
-    const areaConfig = {
-        data: areaData,
-        xField: 'date',
-        yField: 'value',
-        seriesField: 'category',
-        color: [token.colorPrimary, token.colorInfo],
-        areaStyle: { fillOpacity: 0.7 },
-        smooth: true,
-        xAxis: { tickCount: 5 },
-        yAxis: {
-            min: 0,
-            tickCount: 5,
-        },
-        animation: {
-            appear: {
-                animation: 'path-in',
-                duration: 1000,
-            },
-        },
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Hoàn thành':
+                return 'bg-green-100 text-green-800';
+            case 'Đang xử lý':
+                return 'bg-blue-100 text-blue-800';
+            case 'Đang giao':
+                return 'bg-purple-100 text-purple-800';
+            default:
+                return 'bg-orange-100 text-orange-800';
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6 flex items-center justify-center">
+                <div className="flex flex-col items-center space-y-4">
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-slate-600">Đang tải dữ liệu...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <>
-            <div className="mb-8">
-                <Title level={3} style={{ margin: 0, fontWeight: 600 }}>
-                    Tổng quan
-                </Title>
-                <Text type="secondary">Chào mừng quay trở lại, Admin</Text>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+            {/* Header */}
+            <div className="mb-8 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                            Bảng Điều Khiển
+                        </h1>
+                        <p className="text-slate-600 mt-2 flex items-center">
+                            <Sparkles className="w-4 h-4 mr-2 text-amber-500" />
+                            Xin chào, chúc bạn một ngày làm việc hiệu quả!
+                        </p>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                        <button className="flex items-center px-4 py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                            <Calendar className="w-4 h-4 mr-2 text-slate-500" />
+                            Hôm nay
+                        </button>
+                        <button className="flex items-center px-4 py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                            <Download className="w-4 h-4 mr-2 text-slate-500" />
+                            Tải báo cáo
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <Row gutter={[24, 24]}>
-                <Col xs={24} sm={8}>
-                    <Card
-                        bordered={false}
-                        className="overflow-hidden"
-                        style={{ borderRadius: 12 }}
-                        bodyStyle={{ padding: 20 }}
-                    >
-                        <div className="flex items-center gap-4">
-                            <div
-                                className="w-12 h-12 rounded-full flex items-center justify-center"
-                                style={{
-                                    background: `${token.colorPrimary}15`,
-                                }}
-                            >
-                                <TeamOutlined className="text-xl" style={{ color: token.colorPrimary }} />
-                            </div>
-                            <div>
-                                <div className="text-sm opacity-60">Khách hàng</div>
-                                <div className="text-2xl font-bold">
-                                    {stats.customers.count.toLocaleString('vi-VN')}
-                                </div>
-                                <div
-                                    className={`text-sm ${
-                                        stats.customers.isPositive ? 'text-green-600' : 'text-red-600'
-                                    }`}
-                                >
-                                    {stats.customers.isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}{' '}
-                                    {stats.customers.growth}%
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <StatCard
+                    title="Khách hàng"
+                    count={stats.customers.count}
+                    growth={stats.customers.growth}
+                    isPositive={stats.customers.isPositive}
+                    icon={Users}
+                    gradient="from-blue-500 to-blue-600"
+                    delay={0}
+                />
+                <StatCard
+                    title="Đơn hàng"
+                    count={stats.orders.count}
+                    growth={stats.orders.growth}
+                    isPositive={stats.orders.isPositive}
+                    icon={ShoppingCart}
+                    gradient="from-purple-500 to-purple-600"
+                    delay={100}
+                />
+                <StatCard
+                    title="Doanh thu"
+                    count={stats.revenue.count}
+                    growth={stats.revenue.growth}
+                    isPositive={stats.revenue.isPositive}
+                    icon={DollarSign}
+                    gradient="from-green-500 to-green-600"
+                    delay={200}
+                />
+                <StatCard
+                    title="Sản phẩm"
+                    count={stats.products.count}
+                    growth={stats.products.growth}
+                    isPositive={stats.products.isPositive}
+                    icon={Package}
+                    gradient="from-orange-500 to-orange-600"
+                    delay={300}
+                />
+            </div>
 
-                <Col xs={24} sm={8}>
-                    <Card
-                        bordered={false}
-                        className="overflow-hidden"
-                        style={{ borderRadius: 12 }}
-                        bodyStyle={{ padding: 20 }}
-                    >
-                        <div className="flex items-center gap-4">
-                            <div
-                                className="w-12 h-12 rounded-full flex items-center justify-center"
-                                style={{
-                                    background: `${token.colorError}15`,
-                                }}
-                            >
-                                <ShoppingCartOutlined className="text-xl" style={{ color: token.colorError }} />
-                            </div>
-                            <div>
-                                <div className="text-sm opacity-60">Đơn hàng</div>
-                                <div className="text-2xl font-bold">{stats.orders.count.toLocaleString('vi-VN')}</div>
-                                <div
-                                    className={`text-sm ${stats.orders.isPositive ? 'text-green-600' : 'text-red-600'}`}
-                                >
-                                    {stats.orders.isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}{' '}
-                                    {stats.orders.growth}%
-                                </div>
-                            </div>
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                {/* Revenue Chart */}
+                <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-xl font-semibold text-slate-800">Biểu Đồ Doanh Thu Theo Tháng</h3>
+                            <p className="text-slate-500 text-sm mt-1">Phân tích chi tiết doanh thu và lợi nhuận</p>
                         </div>
-                    </Card>
-                </Col>
-
-                <Col xs={24} sm={8}>
-                    <Card
-                        bordered={false}
-                        className="overflow-hidden"
-                        style={{ borderRadius: 12 }}
-                        bodyStyle={{ padding: 20 }}
-                    >
-                        <div className="flex items-center gap-4">
-                            <div
-                                className="w-12 h-12 rounded-full flex items-center justify-center"
-                                style={{
-                                    background: `${token.colorSuccess}15`,
-                                }}
-                            >
-                                <GiftOutlined className="text-xl" style={{ color: token.colorSuccess }} />
-                            </div>
-                            <div>
-                                <div className="text-sm opacity-60">Doanh thu</div>
-                                <div className="text-2xl font-bold">
-                                    {stats.revenue.count.toLocaleString('vi-VN')} đ
-                                </div>
-                                <div
-                                    className={`text-sm ${
-                                        stats.revenue.isPositive ? 'text-green-600' : 'text-red-600'
-                                    }`}
-                                >
-                                    {stats.revenue.isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}{' '}
-                                    {stats.revenue.growth}%
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
-
-            <Row gutter={[24, 24]} className="mt-6">
-                <Col xs={24} lg={16}>
-                    <Card
-                        bordered={false}
-                        title="Doanh số theo tháng"
-                        className="h-full"
-                        style={{ borderRadius: 12 }}
-                        extra={
-                            <Select defaultValue="year" style={{ width: 140 }} size="middle">
-                                <Option value="year">Năm nay</Option>
-                                <Option value="month">Tháng này</Option>
-                                <Option value="week">Tuần này</Option>
-                            </Select>
-                        }
-                    >
-                        <Column
-                            data={stats.monthlySales}
-                            xField="month"
-                            yField="sales"
-                            colorField="month"
-                            height={300}
-                            color={({ month }) => {
-                                const colors = [token.colorPrimary, token.colorInfo, token.colorSuccess];
-                                return colors[month.charCodeAt(1) % colors.length];
-                            }}
-                            columnStyle={{
-                                radius: [6, 6, 0, 0],
-                            }}
-                            label={false}
-                            xAxis={{
-                                label: {
-                                    autoRotate: false,
-                                },
-                            }}
-                        />
-                    </Card>
-                </Col>
-
-                <Col xs={24} lg={8}>
-                    <Card
-                        bordered={false}
-                        title="Đơn hàng gần đây"
-                        className="h-full"
-                        style={{ borderRadius: 12 }}
-                        extra={
-                            <Button type="link" className="px-0">
-                                Xem tất cả
-                            </Button>
-                        }
-                    >
-                        <div className="space-y-4">
-                            {recentOrders.map((order) => (
-                                <div key={order.id} className="flex items-center justify-between border-b pb-4">
-                                    <div>
-                                        <div className="font-medium">
-                                            #{order.id} - {order.customer}
-                                        </div>
-                                        <div className="text-sm opacity-60">{order.product}</div>
-                                    </div>
-                                    <div>
-                                        <div className="font-medium text-right">
-                                            {order.amount.toLocaleString('vi-VN')} đ
-                                        </div>
-                                        <div
-                                            className={`text-xs text-right ${
-                                                order.status === 'Hoàn thành'
-                                                    ? 'text-green-600'
-                                                    : order.status === 'Đang xử lý'
-                                                    ? 'text-blue-600'
-                                                    : order.status === 'Đang giao hàng'
-                                                    ? 'text-purple-600'
-                                                    : 'text-orange-600'
-                                            }`}
-                                        >
-                                            {order.status}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-4">
-                            <Button type="primary" block>
-                                Quản lý đơn hàng
-                            </Button>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
-
-            <Card
-                bordered={false}
-                title="Thống kê"
-                className="mt-6"
-                style={{ borderRadius: 12 }}
-                extra={
-                    <div className="flex gap-2">
-                        <Button type="primary" size="middle">
-                            Tháng
-                        </Button>
-                        <Button size="middle">Quý</Button>
-                        <Button size="middle">Năm</Button>
                     </div>
-                }
-            >
-                <div className="mb-2 text-gray-500">Chỉ tiêu theo từng tháng</div>
-                <div className="h-80">
-                    <Area {...areaConfig} />
+                    <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={monthlyData}>
+                                <defs>
+                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                                    </linearGradient>
+                                    <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
+                                <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
+                                <YAxis stroke="#64748b" fontSize={12} />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: 'white',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                                    }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="revenue"
+                                    stroke="#3B82F6"
+                                    fillOpacity={1}
+                                    fill="url(#colorRevenue)"
+                                    strokeWidth={3}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="profit"
+                                    stroke="#10B981"
+                                    fillOpacity={1}
+                                    fill="url(#colorProfit)"
+                                    strokeWidth={3}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
-            </Card>
-        </>
+
+                {/* Top Products */}
+                <div className="bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xl font-semibold text-slate-800">Top Sản Phẩm Bán Chạy Nhất</h3>
+                    </div>
+                    <div className="h-48 mb-6">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={topProducts}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={90}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {topProducts.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div className="space-y-3">
+                        {topProducts.map((product, index) => (
+                            <div key={index} className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <div
+                                        className="w-3 h-3 rounded-full mr-3"
+                                        style={{ backgroundColor: product.color }}
+                                    ></div>
+                                    <span className="text-slate-700 text-sm">{product.name}</span>
+                                </div>
+                                <span className="text-slate-900 font-medium">{product.value}%</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Recent Orders */}
+            <div className="bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 className="text-xl font-semibold text-slate-800">Danh Sách Đơn Hàng Mới Nhất</h3>
+                        <p className="text-slate-500 text-sm mt-1">Theo dõi và quản lý các giao dịch gần đây</p>
+                    </div>
+                </div>
+                <div className="overflow-hidden">
+                    <div className="space-y-4">
+                        {recentOrders.map((order, index) => (
+                            <div
+                                key={order.id}
+                                className="flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 transition-colors duration-200 border border-slate-100"
+                                style={{ animationDelay: `${index * 100}ms` }}
+                            >
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-semibold">
+                                        {order.avatar}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-slate-800">
+                                            #{order.id} - {order.customer}
+                                        </p>
+                                        <p className="text-slate-500 text-sm">{order.product}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-semibold text-slate-800">
+                                        {order.amount.toLocaleString('vi-VN')} đ
+                                    </p>
+                                    <span
+                                        className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                                            order.status,
+                                        )}`}
+                                    >
+                                        {order.status}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <style jsx>{`
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .animate-fadeIn {
+                    animation: fadeIn 0.6s ease-out forwards;
+                }
+            `}</style>
+        </div>
     );
-}
+};
 
 export default Dashboard;
-
-
-
-

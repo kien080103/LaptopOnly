@@ -34,5 +34,6 @@ router.post('/delete-user', asyncHandler(controllerUser.deleteUser));
 router.post('/update-password', asyncHandler(controllerUser.updatePassword));
 router.post('/upload-image', upload.single('image'), authUser, asyncHandler(controllerUser.changeAvatar));
 router.post('/create-user', asyncHandler(controllerUser.createUser));
+router.get('/statistic', authUser, asyncHandler(controllerUser.getStatistic));
 
 module.exports = router;

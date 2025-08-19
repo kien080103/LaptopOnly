@@ -84,35 +84,6 @@ function ManagerWebsite() {
 
     return (
         <div>
-            {/* Banner slider preview */}
-            <Card style={{ marginBottom: 24 }}>
-                <Title level={5}>Xem trước Banner</Title>
-                <div style={{ marginTop: 16 }}>
-                    <Slider {...sliderSettings}>
-                        {bannerImages.map((image, index) => (
-                            <div key={index}>
-                                <img
-                                    src={`${import.meta.env.VITE_URL_IMAGE}/uploads/website/${image.banner}`}
-                                    alt={`Banner ${index + 1}`}
-                                    style={{
-                                        width: '100%',
-                                        height: 400,
-                                        objectFit: 'cover',
-                                        borderRadius: 8,
-                                    }}
-                                    onClick={() =>
-                                        handlePreview(
-                                            `${import.meta.env.VITE_URL_IMAGE}/uploads/website/${image.banner}`,
-                                        )
-                                    }
-                                />
-                            </div>
-                        ))}
-                    </Slider>
-                </div>
-            </Card>
-
-            {/* Banner list */}
             <Card>
                 <Title level={4}>Danh sách Banner</Title>
                 <Row gutter={[16, 16]} style={{ marginTop: 16 }}>

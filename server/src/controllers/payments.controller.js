@@ -1,13 +1,27 @@
 const modelCart = require('../models/cart.model');
 const modelPayments = require('../models/payments.model');
 const modelProduct = require('../models/products.model');
-const modelCoupon = require('../models/coupon.model');
+const modelCoupon = require('../models/counpon.model');
 const modelUser = require('../models/users.model');
+const modelPreviewProduct = require('../models/previewProduct.model');
+const modelNotication = require('../models/notication.model');
 
 const { BadRequestError, NotFoundError } = require('../core/error.response');
 const { OK } = require('../core/success.response');
 
 const { VNPay, ignoreLogger, ProductCode, VnpLocale, dateFormat } = require('vnpay');
+
+const socketService = require('../services/socketService');
+
+async function createNotication(content, userId, idPayment) {
+    const notication = await modelNotication.create({
+        content,
+        userId: userId || '0',
+        idPayment: idPayment || '0',
+    });
+
+    return notication;
+}
 
 function generatePayID() {
     // Tạo ID thanh toán bao gồm cả giây để tránh trùng lặp
@@ -59,6 +73,14 @@ class PaymentsController {
             const paymentId = generatePayID();
             const payment = await Promise.all(
                 findCart.map(async (item) => {
+                    const findProduct = await modelProduct.findOne({ where: { id: item.productId } });
+
+                    await createNotication(
+                        `${fullName} đã đặt hàng thành công ${findProduct.nameProduct}`,
+                        id,
+                        paymentId,
+                    );
+
                     return await modelPayments.create({
                         idPayment: paymentId,
                         userId: id,
@@ -77,6 +99,7 @@ class PaymentsController {
                 }),
             );
             await modelCart.destroy({ where: { userId: id } });
+
             new OK({
                 message: 'Create payment success',
                 metadata: payment,
@@ -330,6 +353,9 @@ class PaymentsController {
 
             // Add product to this group
             const product = await modelProduct.findOne({ where: { id: payment.productId } });
+            const previewProduct = await modelPreviewProduct.findOne({
+                where: { productId: payment.productId, userId: id },
+            });
             paymentGroups[payment.idPayment].items.push({
                 productId: payment.productId,
                 quantity: payment.quantity,
@@ -337,6 +363,7 @@ class PaymentsController {
                 product: product,
                 note: payment.note,
                 email: payment.email,
+                previewProduct: previewProduct,
             });
 
             // Sum total price
@@ -414,23 +441,48 @@ class PaymentsController {
 
     async updateStatus(req, res) {
         const { idPayment, status } = req.body;
-        const payment = await modelPayments.findOne({ where: { idPayment: idPayment } });
+        const payment = await modelPayments.findOne({ where: { idPayment } });
         if (!payment) {
             throw new NotFoundError('Payment not found');
         }
-        await modelPayments.update({ status: status }, { where: { idPayment: idPayment } });
+
+        // Update trạng thái đơn hàng
+        await modelPayments.update({ status }, { where: { idPayment } });
+
+        // Nội dung thông báo theo status
+        let content = '';
+        switch (status) {
+            case 'confirm':
+                content = `${payment.fullName} đã xác nhận đơn hàng ${payment.idPayment}`;
+                break;
+            case 'shipping':
+                content = `${payment.fullName} đã bắt đầu vận chuyển ${payment.idPayment}`;
+                break;
+            case 'success':
+                content = `${payment.fullName} đã giao hàng thành công ${payment.idPayment}`;
+                break;
+            case 'failed':
+                content = `${payment.fullName} đã bị huỷ ${payment.idPayment}`;
+                break;
+            case 'pending':
+                content = `${payment.fullName} đã đặt hàng thành công ${payment.idPayment}`;
+                break;
+        }
+
+        // Kiểm tra xem đã có thông báo cho đơn hàng này chưa
+        const oldNoti = await modelNotication.findOne({
+            where: { userId: payment.userId, idPayment: payment.idPayment },
+        });
+
+        if (oldNoti) {
+            // Cập nhật nội dung + thời gian
+            await modelNotication.update({ content, updatedAt: new Date() }, { where: { id: oldNoti.id } });
+        } else {
+            // Tạo mới nếu chưa có
+            await createNotication(content, payment.userId, payment.idPayment);
+        }
+
         new OK({ message: 'Update status success' }).send(res);
-    }
-
-    async completeOrder(req, res) {
-        const { idPayment } = req.body;
-        const payment = await modelPayments.findOne({ where: { idPayment: idPayment } });
-        if (!payment) {
-            throw new NotFoundError('Payment not found');
-        }
-        await modelPayments.update({ status: 'success' }, { where: { idPayment: idPayment } });
-
-        new OK({ message: 'Complete order success' }).send(res);
     }
 }
 

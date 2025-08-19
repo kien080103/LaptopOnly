@@ -7,6 +7,7 @@ import { Image, Tabs, Rate, Button, InputNumber, Tag, Divider, Skeleton, Carouse
 import { ShoppingCart, Heart, Check, Shield, RotateCcw, Truck, ArrowLeft, ArrowRight, Share2 } from 'lucide-react';
 import CardBody from '../components/CardBody';
 import { useStore } from '../hooks/useStore';
+import moment from 'moment';
 
 function DetailProduct() {
     const { id } = useParams();
@@ -16,6 +17,9 @@ function DetailProduct() {
     const [activeTab, setActiveTab] = useState('1');
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [productRelate, setProductRelate] = useState([]);
+    const [previewProduct, setPreviewProduct] = useState([]);
+
+    console.log(previewProduct);
 
     const carouselRef = useRef(null);
 
@@ -28,6 +32,7 @@ function DetailProduct() {
                 const res = await requestGetProductById(id);
                 setProduct(res.metadata.product);
                 setProductRelate(res.metadata.productRelate);
+                setPreviewProduct(res.metadata.previewProduct);
                 document.title = res.metadata.product.nameProduct;
                 carouselRef.current.scrollIntoView({ behavior: 'smooth' });
             } catch (error) {
@@ -146,11 +151,24 @@ function DetailProduct() {
                                         {product.nameProduct}
                                     </h1>
                                     <div className="flex items-center mt-2">
-                                        <Rate disabled defaultValue={4.5} allowHalf className="text-sm" />
-                                        <span className="text-gray-500 ml-2 text-sm">4.5 (120 đánh giá)</span>
-                                        <div className="ml-4 flex items-center">
-                                            <span className="text-sm text-blue-600 font-medium">Đã bán: 256</span>
-                                        </div>
+                                        <Rate
+                                            disabled
+                                            defaultValue={
+                                                previewProduct.length > 0
+                                                    ? previewProduct.reduce((acc, item) => acc + item.rating, 0) /
+                                                      previewProduct.length
+                                                    : 0
+                                            }
+                                            allowHalf
+                                            className="text-sm"
+                                        />
+                                        <span className="text-gray-500 ml-2 text-sm">
+                                            {previewProduct.length > 0
+                                                ? previewProduct.reduce((acc, item) => acc + item.rating, 0) /
+                                                      previewProduct.length +
+                                                  ' đánh giá'
+                                                : 0}
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="mt-6 bg-gray-50 pt-4 pb-2 rounded-lg">
@@ -303,73 +321,7 @@ function DetailProduct() {
                                         key: '2',
                                         label: 'Mô tả sản phẩm',
                                         children: (
-                                            <div className="bg-white p-6 rounded-lg shadow-sm">
-                                                <h3 className="text-xl font-bold mb-6 text-gray-800">
-                                                    Giới thiệu {product.nameProduct}
-                                                </h3>
-                                                <div className="prose max-w-none text-gray-700">
-                                                    <p className="text-base leading-relaxed">
-                                                        {product.descriptionProduct}
-                                                    </p>
-
-                                                    <div className="mt-8 space-y-4">
-                                                        <h4 className="text-lg font-semibold">
-                                                            Hiệu năng mạnh mẽ cho công việc và giải trí
-                                                        </h4>
-                                                        <p>
-                                                            Laptop Gaming ASUS TUF 16 2025 được trang bị bộ vi xử lý
-                                                            Intel Core 5 210H với 8 lõi và 12 luồng, đem lại hiệu năng
-                                                            ấn tượng cho mọi tác vụ từ làm việc văn phòng đến chơi game.
-                                                        </p>
-
-                                                        <h4 className="text-lg font-semibold">
-                                                            Đồ họa sống động với NVIDIA GeForce RTX 4050
-                                                        </h4>
-                                                        <p>
-                                                            Card đồ họa NVIDIA GeForce RTX 4050 6GB GDDR6 cho phép bạn
-                                                            trải nghiệm các tựa game AAA mới nhất với đồ họa chất lượng
-                                                            cao và khả năng ray-tracing.
-                                                        </p>
-
-                                                        <h4 className="text-lg font-semibold">
-                                                            Màn hình 16 inch sắc nét
-                                                        </h4>
-                                                        <p>
-                                                            Trải nghiệm hình ảnh sắc nét trên màn hình 16 inch độ phân
-                                                            giải FullHD+ (1920 x 1200) với tần số quét cao, mang lại
-                                                            trải nghiệm gaming mượt mà.
-                                                        </p>
-
-                                                        <div className="mt-4">
-                                                            <img
-                                                                src={`${
-                                                                    import.meta.env.VITE_API_URL
-                                                                }/uploads/products/${
-                                                                    product.imagesProduct.split(', ')[0]
-                                                                }`}
-                                                                alt={product.nameProduct}
-                                                                className="w-full rounded-lg"
-                                                            />
-                                                        </div>
-
-                                                        <h4 className="text-lg font-semibold">
-                                                            Thiết kế bền bỉ, tản nhiệt hiệu quả
-                                                        </h4>
-                                                        <p>
-                                                            Thiết kế đạt chuẩn quân đội MIL-STD-810H với hệ thống tản
-                                                            nhiệt thông minh, đảm bảo hiệu suất ổn định trong thời gian
-                                                            dài.
-                                                        </p>
-
-                                                        <h4 className="text-lg font-semibold">Đa dạng cổng kết nối</h4>
-                                                        <p>
-                                                            Trang bị đầy đủ các cổng kết nối hiện đại như Thunderbolt 4,
-                                                            HDMI 2.1, USB 3.2, cùng nhiều cổng khác đáp ứng mọi nhu cầu
-                                                            sử dụng.
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <div dangerouslySetInnerHTML={{ __html: product.descriptionProduct }} />
                                         ),
                                     },
                                     {
@@ -380,9 +332,27 @@ function DetailProduct() {
                                                 <div className="flex flex-col md:flex-row gap-8">
                                                     <div className="md:w-1/3 border-r pr-8">
                                                         <div className="text-center">
-                                                            <h3 className="text-3xl font-bold text-gray-800">4.5</h3>
-                                                            <Rate disabled defaultValue={4.5} allowHalf />
-                                                            <p className="mt-2 text-gray-500">Dựa trên 120 đánh giá</p>
+                                                            <h3 className="text-3xl font-bold text-gray-800">
+                                                                {previewProduct.length > 0
+                                                                    ? previewProduct.reduce(
+                                                                          (acc, item) => acc + item.rating,
+                                                                          0,
+                                                                      ) / previewProduct.length
+                                                                    : 0}
+                                                            </h3>
+                                                            <Rate
+                                                                disabled
+                                                                defaultValue={
+                                                                    previewProduct.reduce(
+                                                                        (acc, item) => acc + item.rating,
+                                                                        0,
+                                                                    ) / previewProduct.length
+                                                                }
+                                                                allowHalf
+                                                            />
+                                                            <p className="mt-2 text-gray-500">
+                                                                Dựa trên {previewProduct.length} đánh giá
+                                                            </p>
                                                         </div>
 
                                                         <div className="mt-6 space-y-2">
@@ -391,130 +361,160 @@ function DetailProduct() {
                                                                 <div className="flex-1 bg-gray-200 rounded-full h-2.5 mx-2">
                                                                     <div
                                                                         className="bg-yellow-400 h-2.5 rounded-full"
-                                                                        style={{ width: '75%' }}
+                                                                        style={{
+                                                                            width: `${
+                                                                                previewProduct.filter(
+                                                                                    (item) => item.rating === 5,
+                                                                                ).length / previewProduct.length
+                                                                            }%`,
+                                                                        }}
                                                                     ></div>
                                                                 </div>
-                                                                <span className="text-xs">75%</span>
+                                                                <span className="text-xs">
+                                                                    {previewProduct.filter((item) => item.rating === 5)
+                                                                        .length / previewProduct.length}
+                                                                    %
+                                                                </span>
                                                             </div>
                                                             <div className="flex items-center">
                                                                 <span className="w-8 text-xs">4★</span>
                                                                 <div className="flex-1 bg-gray-200 rounded-full h-2.5 mx-2">
                                                                     <div
                                                                         className="bg-yellow-400 h-2.5 rounded-full"
-                                                                        style={{ width: '15%' }}
+                                                                        style={{
+                                                                            width: `${
+                                                                                previewProduct.filter(
+                                                                                    (item) => item.rating === 4,
+                                                                                ).length / previewProduct.length
+                                                                            }%`,
+                                                                        }}
                                                                     ></div>
                                                                 </div>
-                                                                <span className="text-xs">15%</span>
+                                                                <span className="text-xs">
+                                                                    {previewProduct.filter((item) => item.rating === 4)
+                                                                        .length / previewProduct.length}
+                                                                    %
+                                                                </span>
                                                             </div>
                                                             <div className="flex items-center">
                                                                 <span className="w-8 text-xs">3★</span>
                                                                 <div className="flex-1 bg-gray-200 rounded-full h-2.5 mx-2">
                                                                     <div
                                                                         className="bg-yellow-400 h-2.5 rounded-full"
-                                                                        style={{ width: '5%' }}
+                                                                        style={{
+                                                                            width: `${
+                                                                                previewProduct.filter(
+                                                                                    (item) => item.rating === 3,
+                                                                                ).length / previewProduct.length
+                                                                            }%`,
+                                                                        }}
                                                                     ></div>
                                                                 </div>
-                                                                <span className="text-xs">5%</span>
+                                                                <span className="text-xs">
+                                                                    {previewProduct.filter((item) => item.rating === 3)
+                                                                        .length / previewProduct.length}
+                                                                    %
+                                                                </span>
                                                             </div>
                                                             <div className="flex items-center">
                                                                 <span className="w-8 text-xs">2★</span>
                                                                 <div className="flex-1 bg-gray-200 rounded-full h-2.5 mx-2">
                                                                     <div
                                                                         className="bg-yellow-400 h-2.5 rounded-full"
-                                                                        style={{ width: '3%' }}
+                                                                        style={{
+                                                                            width: `${
+                                                                                previewProduct.filter(
+                                                                                    (item) => item.rating === 2,
+                                                                                ).length / previewProduct.length
+                                                                            }%`,
+                                                                        }}
                                                                     ></div>
                                                                 </div>
-                                                                <span className="text-xs">3%</span>
+                                                                <span className="text-xs">
+                                                                    {previewProduct.filter((item) => item.rating === 2)
+                                                                        .length / previewProduct.length}
+                                                                    %
+                                                                </span>
                                                             </div>
+                                                            {/* <div className="flex items-center">
+                                                                <span className="w-8 text-xs">1★</span>
+                                                                <div className="flex-1 bg-gray-200 rounded-full h-2.5 mx-2">
+                                                                    <div
+                                                                        className="bg-yellow-400 h-2.5 rounded-full"
+                                                                        style={{
+                                                                            width: `${
+                                                                                previewProduct.filter(
+                                                                                    (item) => item.rating === 1,
+                                                                                ).length / previewProduct.length
+                                                                            }%`,
+                                                                        }}
+                                                                    ></div>
+                                                                </div>
+                                                                <span className="text-xs">2%
+                                                                    {
+                                                                        previewProduct.filter(
+                                                                            (item) => item.rating === 1,
+                                                                        ).length / previewProduct.length
+                                                                    }%
+                                                                </span>
+                                                            </div> */}
                                                             <div className="flex items-center">
                                                                 <span className="w-8 text-xs">1★</span>
                                                                 <div className="flex-1 bg-gray-200 rounded-full h-2.5 mx-2">
                                                                     <div
                                                                         className="bg-yellow-400 h-2.5 rounded-full"
-                                                                        style={{ width: '2%' }}
+                                                                        style={{
+                                                                            width: `${
+                                                                                previewProduct.filter(
+                                                                                    (item) => item.rating === 1,
+                                                                                ).length / previewProduct.length
+                                                                            }%`,
+                                                                        }}
                                                                     ></div>
                                                                 </div>
-                                                                <span className="text-xs">2%</span>
+                                                                <span className="text-xs">
+                                                                    {previewProduct.filter((item) => item.rating === 1)
+                                                                        .length / previewProduct.length}
+                                                                    %
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     <div className="md:w-2/3">
-                                                        <div className="mb-6">
-                                                            <Button type="primary" size="large" className="bg-blue-500">
-                                                                Viết đánh giá
-                                                            </Button>
-                                                        </div>
-
                                                         <div className="space-y-6">
-                                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div className="flex items-center">
-                                                                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-800 font-bold mr-3">
-                                                                            N
-                                                                        </div>
-                                                                        <div>
-                                                                            <h4 className="font-medium">
-                                                                                Nguyễn Văn A
-                                                                            </h4>
-                                                                            <div className="flex items-center mt-1">
-                                                                                <Rate
-                                                                                    disabled
-                                                                                    defaultValue={5}
-                                                                                    className="text-xs"
-                                                                                />
-                                                                                <span className="text-xs text-gray-500 ml-2">
-                                                                                    2 tháng trước
-                                                                                </span>
+                                                            {previewProduct.map((item) => (
+                                                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <div className="flex items-center">
+                                                                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-800 font-bold mr-3">
+                                                                                N
+                                                                            </div>
+                                                                            <div>
+                                                                                <h4 className="font-medium">
+                                                                                    {item.user.fullName}
+                                                                                </h4>
+                                                                                <div className="flex items-center mt-1">
+                                                                                    <Rate
+                                                                                        disabled
+                                                                                        defaultValue={item.rating}
+                                                                                        className="text-xs"
+                                                                                    />
+                                                                                    <span className="text-xs text-gray-500 ml-2">
+                                                                                        {moment(item.createdAt).format(
+                                                                                            'DD/MM/YYYY',
+                                                                                        )}
+                                                                                    </span>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <Tag color="blue">Đã mua hàng</Tag>
-                                                                    </div>
-                                                                </div>
-                                                                <p className="mt-3 text-gray-700">
-                                                                    "Sản phẩm rất tốt, mọi thứ đều hoàn hảo. Hiệu năng
-                                                                    máy mạnh, chơi game mượt, thiết kế cũng rất đẹp.
-                                                                    Giao hàng nhanh, đóng gói cẩn thận."
-                                                                </p>
-                                                            </div>
-
-                                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div className="flex items-center">
-                                                                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-800 font-bold mr-3">
-                                                                            T
-                                                                        </div>
                                                                         <div>
-                                                                            <h4 className="font-medium">Trần Văn B</h4>
-                                                                            <div className="flex items-center mt-1">
-                                                                                <Rate
-                                                                                    disabled
-                                                                                    defaultValue={4}
-                                                                                    className="text-xs"
-                                                                                />
-                                                                                <span className="text-xs text-gray-500 ml-2">
-                                                                                    1 tháng trước
-                                                                                </span>
-                                                                            </div>
+                                                                            <Tag color="blue">Đã mua hàng</Tag>
                                                                         </div>
                                                                     </div>
-                                                                    <div>
-                                                                        <Tag color="blue">Đã mua hàng</Tag>
-                                                                    </div>
+                                                                    <p className="mt-3 text-gray-700">{item.content}</p>
                                                                 </div>
-                                                                <p className="mt-3 text-gray-700">
-                                                                    "Laptop chạy rất mượt, hiệu năng tốt. Pin dùng được
-                                                                    khoảng 4-5 giờ với các tác vụ văn phòng. Chơi game
-                                                                    cũng khá ổn. Chỉ có điểm trừ là hơi nóng khi chơi
-                                                                    game nặng."
-                                                                </p>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="mt-6 flex justify-center">
-                                                            <Button type="default">Xem thêm đánh giá</Button>
+                                                            ))}
                                                         </div>
                                                     </div>
                                                 </div>

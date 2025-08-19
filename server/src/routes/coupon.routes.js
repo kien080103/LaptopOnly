@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { asyncHandler, authUser } = require('../auth/checkAuth');
 
-const controllerCoupon = require('../controllers/coupon.controller');
+const controllerCoupon = require('../controllers/counpon.controller');
 
 router.post('/create', asyncHandler(controllerCoupon.createCoupon));
 router.get('/get-all-coupon', asyncHandler(controllerCoupon.getAllCoupon));

@@ -1,6 +1,7 @@
 import App from '../App';
 import Admin from '../pages/admin';
 import CartUser from '../pages/Cart';
+import Category from '../pages/Category';
 import CheckOut from '../pages/CheckOut';
 import DetailProduct from '../pages/DetailProduct';
 import InfoUser from '../pages/InfoUser';
@@ -56,5 +57,9 @@ export const routes = [
     {
         path: '/admin',
         component: <Admin />,
+    },
+    {
+        path: '/category/:id',
+        component: <Category />,
     },
 ];

@@ -5,7 +5,14 @@ import { apiClient } from './axiosClient';
 const request = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     withCredentials: true,
+    timeout: 100000000000,
 });
+
+const apiReview = '/api/review';
+export const requestReview = async (data) => {
+    const res = await request.post(`${apiReview}`, data);
+    return res.data;
+};
 
 const apiUser = '/api/user';
 
@@ -89,6 +96,11 @@ export const requestUpdateUserAdmin = async (data) => {
     return res.data;
 };
 
+export const requestGetStatistic = async () => {
+    const res = await apiClient.get(`${apiUser}/statistic`);
+    return res.data;
+};
+
 //// category
 
 const apiCategory = '/api/category';
@@ -153,6 +165,16 @@ export const requestUpdateProduct = async (data) => {
 
 export const requestDeleteProduct = async (data) => {
     const res = await apiClient.post(`${apiProduct}/delete`, data);
+    return res.data;
+};
+
+export const requestGetProductFlashSale = async () => {
+    const res = await apiClient.get(`${apiProduct}/flash-sale`);
+    return res.data;
+};
+
+export const requestGetProductByCategory = async (id) => {
+    const res = await apiClient.get(`${apiProduct}/category?id=${id}`);
     return res.data;
 };
 
@@ -293,5 +315,59 @@ export const requestReadMessage = async (data) => {
             senderId: data?.senderId,
         },
     });
+    return res.data;
+};
+
+/// coupon
+const apiCoupon = '/api/coupon';
+
+export const requestCreateCoupon = async (data) => {
+    const res = await apiClient.post(`${apiCoupon}/create`, data);
+    return res.data;
+};
+
+export const requestGetAllCoupon = async () => {
+    const res = await apiClient.get(`${apiCoupon}/get-all-coupon`);
+    return res.data;
+};
+
+export const requestGetAllProduct = async () => {
+    const res = await apiClient.get(`${apiProduct}/all`);
+    return res.data;
+};
+
+export const requestUpdateCoupon = async (data) => {
+    const res = await apiClient.post(`${apiCoupon}/update`, data);
+    return res.data;
+};
+
+export const requestDeleteCoupon = async (data) => {
+    const res = await apiClient.post(`${apiCoupon}/delete`, { id: data.id });
+    return res.data;
+};
+
+/// preview product
+const apiPreviewProduct = '/api/preview-product';
+
+export const requestCreatePreviewProduct = async (data) => {
+    const res = await apiClient.post(`${apiPreviewProduct}/create`, data);
+    return res.data;
+};
+
+/// notication
+const apiNotication = '/api/notication';
+
+export const requestGetNotication = async () => {
+    const res = await apiClient.get(`${apiNotication}/notication`);
+    return res.data;
+};
+
+export const requestGetNoticationByUserId = async () => {
+    const res = await apiClient.get(`${apiNotication}/notication-user`);
+    return res.data;
+};
+
+export const requestReadAllNotication = async () => {
+    const res = await apiClient.get(`${apiNotication}/read-all-notication`);
     return res.data;
 };

@@ -1,32 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Bell } from 'lucide-react';
-import { requestGetBanner } from '../config/request';
+import { requestGetBanner, requestGetNotication } from '../config/request';
+import moment from 'moment';
+import { Link } from 'react-router-dom';
 
 function Banner({ categories }) {
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const [banners, setBanners] = useState([]);
+    const [notication, setNotication] = useState([]);
 
     useEffect(() => {
         const fetchBanners = async () => {
             const res = await requestGetBanner();
             setBanners(res.data);
         };
+        const fetchNotication = async () => {
+            const res = await requestGetNotication();
+            setNotication(res.metadata);
+        };
         fetchBanners();
+        fetchNotication();
     }, []);
-
-    const news = [
-        'Trần Luân vừa thanh toán thành công máy tính asus',
-        'Nguyễn Minh vừa mua iPhone 15 Pro Max thành công',
-        'Lê Thị Hoa vừa đặt hàng Samsung Galaxy S24 Ultra',
-        'Phạm Văn Nam vừa thanh toán Xiaomi 14 thành công',
-        'Hoàng Thị Mai vừa mua MacBook Air M3 thành công',
-        'Đặng Văn Hùng vừa đặt hàng iPad Pro 12.9 inch',
-        'Vũ Thị Lan vừa thanh toán AirPods Pro 2 thành công',
-        'Trịnh Minh Đức vừa mua Galaxy Buds2 Pro',
-        'Lý Thị Hương vừa đặt hàng Apple Watch Ultra',
-        'Phan Văn Tuấn vừa thanh toán Surface Laptop Studio',
-    ];
 
     // Auto-play slider
     useEffect(() => {
@@ -58,11 +53,13 @@ function Banner({ categories }) {
                             >
                                 <ul className="space-y-1">
                                     {categories.map((brand, index) => (
-                                        <li key={index}>
-                                            <button className="w-full text-left text-sm text-gray-600 hover:text-red-600 hover:bg-gray-50 py-2 px-3 rounded transition-colors">
-                                                {brand.nameCategory}
-                                            </button>
-                                        </li>
+                                        <Link to={`/category/${brand.id}`}>
+                                            <li key={index}>
+                                                <button className="w-full text-left text-sm text-gray-600 hover:text-red-600 hover:bg-gray-50 py-2 px-3 rounded transition-colors">
+                                                    {brand.nameCategory}
+                                                </button>
+                                            </li>
+                                        </Link>
                                     ))}
                                 </ul>
                             </div>
@@ -129,12 +126,14 @@ function Banner({ categories }) {
                             </div>
                             <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                                 <div className="space-y-3 pr-2">
-                                    {news.map((item, index) => (
-                                        <div key={index} className="flex items-start">
-                                            <div className="w-2 h-2 bg-red-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                                            <p className="text-xs text-gray-600 leading-relaxed hover:text-red-600 cursor-pointer transition-colors">
-                                                {item}
-                                            </p>
+                                    {notication.map((item, index) => (
+                                        <div key={index} className="flex flex-col">
+                                            <div className="flex items-start">
+                                                <div className="w-2 h-2 bg-red-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                                                <p className="text-xs text-gray-600 leading-relaxed hover:text-red-600 cursor-pointer transition-colors">
+                                                    {item.content}
+                                                </p>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

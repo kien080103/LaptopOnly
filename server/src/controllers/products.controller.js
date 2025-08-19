@@ -1,4 +1,6 @@
 const modelProduct = require('../models/products.model');
+const modelPreviewProduct = require('../models/previewProduct.model');
+const modelUser = require('../models/users.model');
 
 const { BadRequestError, NotFoundError } = require('../core/error.response');
 const { OK, Created } = require('../core/success.response');
@@ -66,7 +68,24 @@ class controllerProducts {
             order: [['createdAt', 'DESC']],
         });
 
-        new OK({ message: 'Lấy sản phẩm thành công', metadata: { product, productRelate } }).send(res);
+        const previewProduct = await modelPreviewProduct.findAll({
+            where: { productId: id },
+        });
+
+        const dataPreview = await Promise.all(
+            previewProduct.map(async (item) => {
+                const user = await modelUser.findByPk(item.userId);
+                return {
+                    ...item.dataValues,
+                    user,
+                };
+            }),
+        );
+
+        new OK({
+            message: 'Lấy sản phẩm thành công',
+            metadata: { product, productRelate, previewProduct: dataPreview },
+        }).send(res);
     }
 
     async searchProduct(req, res) {
@@ -128,6 +147,23 @@ class controllerProducts {
         }
         await product.destroy();
         new OK({ message: 'Xóa sản phẩm thành công', metadata: product }).send(res);
+    }
+
+    async getProductFlashSale(req, res) {
+        const products = await modelProduct.findAll({
+            where: {
+                discountProduct: { [Op.gt]: 9 },
+            },
+        });
+        new OK({ message: 'Lấy sản phẩm giảm giá thành công', metadata: products }).send(res);
+    }
+
+    async getProductByCategory(req, res) {
+        const { id } = req.query;
+        const products = await modelProduct.findAll({
+            where: { categoryProduct: id },
+        });
+        new OK({ message: 'Lấy sản phẩm thành công', metadata: products }).send(res);
     }
 }
 

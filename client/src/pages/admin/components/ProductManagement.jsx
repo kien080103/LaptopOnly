@@ -273,12 +273,8 @@ function ProductManagement() {
         <div className="min-h-screen text-sm">
             <div className="p-4">
                 <Title level={3} className="!mb-1">
-                    <ShoppingCartOutlined className="mr-2 text-blue-600" />
                     Quản lý sản phẩm
                 </Title>
-                <Text type="secondary" className="text-xs">
-                    Quản lý danh sách sản phẩm
-                </Text>
             </div>
 
             {/* Search & Actions */}

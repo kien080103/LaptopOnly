@@ -1,6 +1,6 @@
 const modelCart = require('../models/cart.model');
 const modelProduct = require('../models/products.model');
-const modelCoupon = require('../models/coupon.model');
+const modelCoupon = require('../models/counpon.model');
 
 const { AuthFailureError, BadRequestError, NotFoundError } = require('../core/error.response');
 const { OK } = require('../core/success.response');

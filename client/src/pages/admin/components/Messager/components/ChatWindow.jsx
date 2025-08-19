@@ -67,10 +67,10 @@ function ChatWindow({ selectedUser, messages, setMessages }) {
                         {selectedUser.fullName}
                     </Title>
                     <Text type="secondary" className="text-xs">
-                        {selectedUser.isOnline ? (
+                        {selectedUser.isOnline === 'online' ? (
                             <Text type="success">Đang hoạt động</Text>
                         ) : (
-                            <>Hoạt động {dayjs(selectedUser.lastLoginAt).fromNow()}</>
+                            <Text type="danger">Đang không hoạt động</Text>
                         )}
                     </Text>
                 </div>

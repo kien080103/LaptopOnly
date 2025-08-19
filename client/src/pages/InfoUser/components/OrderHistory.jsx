@@ -1,5 +1,24 @@
 import { useState, useEffect } from 'react';
-import { Table, Tag, Button, Modal, Descriptions, Spin, Empty, Card, Tabs, Timeline, Steps, message } from 'antd';
+import {
+    Table,
+    Tag,
+    Button,
+    Modal,
+    Descriptions,
+    Spin,
+    Empty,
+    Card,
+    Tabs,
+    Timeline,
+    Steps,
+    message,
+    Rate,
+    Form,
+    Input,
+    Upload,
+    Row,
+    Col,
+} from 'antd';
 import {
     ShoppingOutlined,
     EyeOutlined,
@@ -8,9 +27,10 @@ import {
     CarOutlined,
     CheckCircleOutlined,
     CloseCircleOutlined,
+    StarOutlined,
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
-import { requestCancelPayment, requestGetPaymentsUser } from '../../../config/request';
+import { requestCancelPayment, requestCreatePreviewProduct, requestGetPaymentsUser } from '../../../config/request';
 import moment from 'moment';
 
 function OrderHistory() {
@@ -18,7 +38,10 @@ function OrderHistory() {
     const [loading, setLoading] = useState(true);
     const [viewOrder, setViewOrder] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [reviewModalVisible, setReviewModalVisible] = useState(false);
     const [activeTab, setActiveTab] = useState('all');
+    const [selectedProductForReview, setSelectedProductForReview] = useState(null);
+    const [reviewForm] = Form.useForm();
     const fetchOrders = async () => {
         const res = await requestGetPaymentsUser();
         setOrders(res.metadata);
@@ -132,6 +155,30 @@ function OrderHistory() {
         }
     };
 
+    const handleOpenReviewModal = (order) => {
+        setViewOrder(order);
+        setReviewModalVisible(true);
+    };
+
+    const handleProductSelection = (product) => {
+        setSelectedProductForReview(product);
+        reviewForm.resetFields();
+    };
+
+    const handleReviewSubmit = async (values) => {
+        console.log(values);
+        const data = {
+            productId: selectedProductForReview.productId,
+            rating: values.rating,
+            content: values.content,
+        };
+        await requestCreatePreviewProduct(data);
+
+        message.success('Đánh giá của bạn đã được gửi thành công!');
+        setReviewModalVisible(false);
+        setSelectedProductForReview(null);
+    };
+
     const columns = [
         {
             title: 'Mã đơn hàng',
@@ -160,9 +207,9 @@ function OrderHistory() {
                         <img
                             className="w-20 h-20 object-cover rounded-md"
                             src={`${import.meta.env.VITE_URL_IMAGE}/uploads/products/${
-                                item.product.imagesProduct.split(', ')[0]
+                                item?.product?.imagesProduct?.split(', ')[0]
                             }`}
-                            alt={item.product.nameProduct}
+                            alt={item?.product?.nameProduct}
                         />
                     </div>
                 ));
@@ -208,10 +255,19 @@ function OrderHistory() {
                             type="primary"
                             icon={<CloseCircleOutlined />}
                             size="small"
-                            className="bg-red-500"
                             onClick={() => handleCancelOrder(record.idPayment)}
                         >
                             Huỷ đơn
+                        </Button>
+                    )}
+                    {record.status === 'success' && (
+                        <Button
+                            type="primary"
+                            icon={<StarOutlined />}
+                            size="small"
+                            onClick={() => handleOpenReviewModal(record)}
+                        >
+                            Đánh giá
                         </Button>
                     )}
                 </div>
@@ -482,6 +538,148 @@ function OrderHistory() {
                     font-weight: 600;
                 }
             `}</style>
+
+            {/* Modal Đánh Giá Sản Phẩm */}
+            <Modal
+                title={
+                    <div className="flex items-center gap-2">
+                        <StarOutlined className="text-yellow-500" />
+                        <span>Đánh giá sản phẩm</span>
+                    </div>
+                }
+                open={reviewModalVisible}
+                onCancel={() => {
+                    setReviewModalVisible(false);
+                    setSelectedProductForReview(null);
+                }}
+                footer={null}
+                width={700}
+                className="review-modal"
+            >
+                {viewOrder && (
+                    <div>
+                        {!selectedProductForReview ? (
+                            <div className="mb-6">
+                                <h3 className="font-medium text-lg mb-4">Chọn sản phẩm để đánh giá:</h3>
+                                <div className="space-y-3 max-h-80 overflow-auto p-2">
+                                    {viewOrder.items
+                                        .filter((item) => !item.previewProduct)
+                                        .map((product) => (
+                                            <Card
+                                                key={product.id}
+                                                hoverable
+                                                className="border border-gray-200"
+                                                onClick={() => handleProductSelection(product)}
+                                            >
+                                                <div className="flex items-center">
+                                                    <img
+                                                        src={`${import.meta.env.VITE_URL_IMAGE}/uploads/products/${
+                                                            product.product.imagesProduct.split(', ')[0]
+                                                        }`}
+                                                        alt={product.product.nameProduct}
+                                                        className="w-20 h-20 object-cover rounded-md"
+                                                    />
+                                                    <div className="ml-4">
+                                                        <h4 className="font-medium">{product.product.nameProduct}</h4>
+                                                        <div className="text-gray-500">SL: {product.quantity}</div>
+                                                        <div className="text-blue-600 mt-2 text-sm">
+                                                            Nhấp để đánh giá sản phẩm này
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                <div className="mb-6 pb-6 border-b">
+                                    <div className="flex items-center gap-4">
+                                        <img
+                                            src={`${import.meta.env.VITE_URL_IMAGE}/uploads/products/${
+                                                selectedProductForReview.product.imagesProduct.split(', ')[0]
+                                            }`}
+                                            alt={selectedProductForReview.product.nameProduct}
+                                            className="w-24 h-24 object-cover rounded-md"
+                                        />
+                                        <div>
+                                            <h3 className="text-lg font-medium mb-1">
+                                                {selectedProductForReview.product.nameProduct}
+                                            </h3>
+                                            <p className="text-gray-500">Mã đơn hàng: {viewOrder.idPayment}</p>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="link"
+                                        onClick={() => setSelectedProductForReview(null)}
+                                        className="mt-2"
+                                    >
+                                        Chọn sản phẩm khác
+                                    </Button>
+                                </div>
+
+                                <Form
+                                    form={reviewForm}
+                                    layout="vertical"
+                                    onFinish={handleReviewSubmit}
+                                    initialValues={{
+                                        rating: 5,
+                                    }}
+                                >
+                                    <Form.Item
+                                        name="rating"
+                                        label={<span className="text-base font-medium">Đánh giá của bạn</span>}
+                                        rules={[{ required: true, message: 'Vui lòng đánh giá sản phẩm!' }]}
+                                    >
+                                        <Rate
+                                            className="text-2xl"
+                                            character={<StarOutlined />}
+                                            allowHalf
+                                            style={{ color: '#fadb14' }}
+                                        />
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        name="content"
+                                        label={<span className="text-base font-medium">Nhận xét của bạn</span>}
+                                        rules={[
+                                            { required: true, message: 'Vui lòng viết nhận xét về sản phẩm!' },
+                                            { min: 20, message: 'Nhận xét phải có ít nhất 20 ký tự!' },
+                                        ]}
+                                    >
+                                        <Input.TextArea
+                                            placeholder="Chia sẻ trải nghiệm của bạn với sản phẩm này..."
+                                            rows={4}
+                                            showCount
+                                            maxLength={1000}
+                                        />
+                                    </Form.Item>
+
+                                    <Form.Item className="mt-8">
+                                        <Row gutter={12} justify="end">
+                                            <Col>
+                                                <Button
+                                                    onClick={() => {
+                                                        setReviewModalVisible(false);
+                                                        setSelectedProductForReview(null);
+                                                    }}
+                                                >
+                                                    Hủy
+                                                </Button>
+                                            </Col>
+                                            <Col>
+                                                <Button type="primary" htmlType="submit">
+                                                    Gửi đánh giá
+                                                </Button>
+                                            </Col>
+                                        </Row>
+                                    </Form.Item>
+                                </Form>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Modal>
         </Card>
     );
 }
