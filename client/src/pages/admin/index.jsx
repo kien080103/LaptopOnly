@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Layout, theme, ConfigProvider } from 'antd';
-import { Routes, Route } from 'react-router-dom';
+import { Layout, theme, ConfigProvider, Tree } from 'antd';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
@@ -11,6 +11,8 @@ import UserManagement from './components/UserManagement';
 import WebsiteManagement from './components/ManagerWebsite';
 import Messager from './components/Messager/Messager';
 import CouponManagement from './components/CouponManagement';
+import BlogAdmin from './components/BlogAdmin';
+import { useStore } from '../../hooks/useStore';
 
 const { Content } = Layout;
 const { useToken } = theme;
@@ -92,6 +94,15 @@ function Admin() {
         };
     }, []);
 
+    const { dataUser} = useStore() 
+    const navigate = useNavigate();
+
+     useEffect(() => {
+            if (dataUser?.role === 'user') {
+                navigate('/');
+            }
+        }, [dataUser]);
+
     // Render content based on active tab
     const renderContent = () => {
         switch (activeTab) {
@@ -111,6 +122,8 @@ function Admin() {
                 return <Messager />;
             case 'coupons':
                 return <CouponManagement />;
+            case 'blog':
+                return <BlogAdmin />;
             default:
                 return <Dashboard token={token} />;
         }

@@ -20,7 +20,7 @@ function Header({ collapsed, setCollapsed, token }) {
             label: (
                 <div className="py-1">
                     <div className="font-medium">Đơn hàng mới #125</div>
-                    <div className="text-xs opacity-70">Từ Nguyễn Văn An - 2 phút trước</div>
+                    <div className="text-xs opacity-70">Từ Dương Xuân Kiên - 2 phút trước</div>
                 </div>
             ),
         },

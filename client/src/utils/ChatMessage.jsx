@@ -106,37 +106,47 @@ function ModernChatMessage() {
     }, []);
 
     const ChatBubble = React.memo(({ message }) => {
-        const isUser = message.senderId === dataUser.id;
+        const isUser = String(message.senderId) === String(dataUser?.id);
 
         return (
-            <div className={`flex items-end gap-3 mb-6 ${isUser ? 'flex-row-reverse' : ''}`}>
-                {!isUser && message.avatar && (
+            <div className={`flex mb-5 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                <div className={`flex items-end gap-3 max-w-[80%] ${isUser ? 'flex-row-reverse' : ''}`}>
+                    {/* Avatar */}
                     <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-md">
-                        <img src={message.avatar} alt="Support" className="w-full h-full object-cover" />
+                        {isUser ? (
+                            dataUser?.avatar ? (
+                                <img src={dataUser.avatar} alt="user" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                                    U
+                                </div>
+                            )
+                        ) : (
+                            <img
+                                src="https://cdn2.cellphones.com.vn/x/media/favicon/default/logo-cps.png"
+                                alt="admin"
+                                className="w-full h-full object-cover"
+                            />
+                        )}
                     </div>
-                )}
 
-                <div className={`max-w-[80%] ${isUser ? 'text-right' : ''}`}>
-                    <div
-                        className={`relative px-4 py-3 rounded-2xl ${
-                            isUser
-                                ? 'bg-blue-600 text-white shadow-md'
-                                : 'bg-white text-gray-800 shadow-sm border border-gray-100'
-                        }`}
-                    >
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
-                    </div>
+                    {/* Message */}
+                    <div>
+                        <div
+                            className={`px-4 py-3 rounded-2xl text-sm shadow-sm whitespace-pre-wrap ${
+                                isUser
+                                    ? 'bg-blue-600 text-white rounded-br-none'
+                                    : 'bg-green-500 text-white rounded-bl-none'
+                            }`}
+                        >
+                            {message.text || ''}
+                        </div>
 
-                    <div className={`text-xs text-gray-500 mt-2 px-2 ${isUser ? 'text-right' : 'text-left'}`}>
-                        {formatTime(message.createdAt)}
+                        <div className={`text-xs text-gray-500 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
+                            {formatTime(message.createdAt)}
+                        </div>
                     </div>
                 </div>
-
-                {isUser && (
-                    <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 shadow-md">
-                        B
-                    </div>
-                )}
             </div>
         );
     });
@@ -182,7 +192,6 @@ function ModernChatMessage() {
     return (
         <>
             <FloatingButton />
-
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-end justify-end p-6">
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-md h-[600px] flex flex-col overflow-hidden border border-gray-200">

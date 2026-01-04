@@ -121,7 +121,7 @@ function CouponManagement() {
             key: 'discount',
             render: (discount) => (
                 <Tag color="#f50" className="font-semibold px-2 rounded-lg">
-                    {discount.toLocaleString('vi-VN')}đ
+                    {discount.toLocaleString('vi-VN')} %
                 </Tag>
             ),
         },
@@ -246,7 +246,7 @@ function CouponManagement() {
                     <div className="flex gap-4 mb-2">
                         <Form.Item
                             name="discount"
-                            label="Giảm giá (đ)"
+                            label="Giảm giá (%)"
                             rules={[{ required: true, message: 'Vui lòng nhập giá trị giảm giá!' }]}
                             className="flex-1"
                         >

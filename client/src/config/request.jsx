@@ -26,6 +26,10 @@ export const requestLogin = async (data) => {
     return res;
 };
 
+export const requestLoginAdmin = (data) => {
+    return request.post(`${apiUser}/login-admin`, data).then((res) => res.data);
+};
+
 export const requestLoginGoogle = async (data) => {
     const res = await request.post(`${apiUser}/login-google`, data);
     return res;
@@ -369,5 +373,38 @@ export const requestGetNoticationByUserId = async () => {
 
 export const requestReadAllNotication = async () => {
     const res = await apiClient.get(`${apiNotication}/read-all-notication`);
+    return res.data;
+};
+
+/// blog
+const apiBlog = '/api/blog';
+
+export const requestUploadImageBlog = async (data) => {
+    const res = await apiClient.post(`${apiBlog}/upload-image`, data);
+    return res.data;
+};
+
+export const requestCreateBlog = async (data) => {
+    const res = await apiClient.post(`${apiBlog}/create`, data);
+    return res.data;
+};
+
+export const requestGetAllBlog = async () => {
+    const res = await request.get(`${apiBlog}/get-all`);
+    return res.data;
+};
+
+export const requestUpdateBlog = async (data) => {
+    const res = await apiClient.post(`${apiBlog}/update`, data);
+    return res.data;
+};
+
+export const requestDeleteBlog = async (data) => {
+    const res = await apiClient.post(`${apiBlog}/delete`, data);
+    return res.data;
+};
+
+export const requestGetBlogById = async (id) => {
+    const res = await request.get(`${apiBlog}/get-by-id?id=${id}`);
     return res.data;
 };

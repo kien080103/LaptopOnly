@@ -1,10 +1,11 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const genAI = new GoogleGenerativeAI('AIzaSyD6a7SB4PdbB2B5ADYXf2J-DdlXGojJpHA');
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const Groq = require('groq-sdk');
+const product = require('../models/products.model');
 
-const product = require('../models/products.model'); // Model Sequelize của bạn
+const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY || '',
+});
 
-// Mapping mục đích sử dụng từ modal
+// Mapping mục đích sử dụng (GIỮ NGUYÊN)
 const purposeMapping = {
     gaming: {
         name: 'Chơi Game',
@@ -86,165 +87,88 @@ const purposeMapping = {
     },
 };
 
-// Hàm phân tích sản phẩm theo mục đích từ modal
+// ==============================
+// 🎯 MAIN FUNCTION
+// ==============================
 async function analyzeProductForPurpose(reviewData) {
     try {
         const { purpose, productId } = reviewData;
 
-        console.log(reviewData);
-
-        // Tìm sản phẩm trong database
         const productData = await product.findOne({ where: { id: productId } });
+        if (!productData) throw new Error('Sản phẩm không tồn tại');
 
-        if (!productData) {
-            throw new Error('Sản phẩm không tồn tại');
-        }
-
-        // Lấy thông tin mục đích sử dụng
         const purposeInfo = purposeMapping[purpose];
-        if (!purposeInfo) {
-            throw new Error('Mục đích sử dụng không hợp lệ');
-        }
+        if (!purposeInfo) throw new Error('Mục đích sử dụng không hợp lệ');
 
-        // Tạo HTML cho sản phẩm cần phân tích
+        // HTML sản phẩm
         const productHTML = `
-            <div style="border: 2px solid #007bff; padding: 16px; margin: 12px 0; border-radius: 12px; background: linear-gradient(135deg, #f8f9ff, #e8f0ff);">
-                ${
-                    productData.imagesProduct && productData.imagesProduct[0]
-                        ? `<img src="http://localhost:3000/uploads/products/${productData.imagesProduct.split(',')[0]}" 
-                           alt="${productData.nameProduct}" 
-                           style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; float: left; margin-right: 16px;">`
-                        : ''
-                }
-                <div>
-                    <h2 style="color: #007bff; font-size: 18px; margin-bottom: 8px;">${productData.nameProduct}</h2>
-                    <p style="color: #28a745; font-size: 16px; font-weight: bold; margin-bottom: 8px;">
-                        💰 Giá: ${Number(productData.priceProduct).toLocaleString('vi-VN')} VND
-                        ${
-                            productData.discountProduct > 0
-                                ? `<span style="color: #dc3545; margin-left: 8px;">(-${productData.discountProduct}%)</span>`
-                                : ''
-                        }
-                    </p>
-                    <p style="color: #6c757d; margin-bottom: 8px;"><strong>Danh mục:</strong> ${
-                        productData.categoryProduct
-                    }</p>
-                    <p style="color: #6c757d; margin-bottom: 8px;"><strong>Tồn kho:</strong> ${
-                        productData.stockProduct
-                    } sản phẩm</p>
-                    <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.7); border-radius: 6px;">
-                        <strong style="color: #495057;">📝 Mô tả:</strong>
-                        <p style="color: #6c757d; margin-top: 4px; line-height: 1.5;">${
-                            productData.descriptionProduct
-                        }</p>
-                    </div>
-                    ${
-                        productData.specsProduct
-                            ? `
-                        <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.7); border-radius: 6px;">
-                            <strong style="color: #495057;">⚙️ Thông số kỹ thuật:</strong>
-                            <div style="margin-top: 8px; color: #6c757d;">
-                                ${Object.entries(productData.specsProduct)
-                                    .map(
-                                        ([key, value]) =>
-                                            `<p style="margin: 4px 0;"><strong>${key}:</strong> ${value}</p>`,
-                                    )
-                                    .join('')}
-                            </div>
-                        </div>
-                    `
-                            : ''
-                    }
-                </div>
-                <div style="clear: both;"></div>
-            </div>
+        <div style="border:2px solid #007bff;padding:16px;border-radius:12px;background:#f8f9ff">
+            <h2>${productData.nameProduct}</h2>
+            <p>💰 Giá: ${Number(productData.priceProduct).toLocaleString('vi-VN')} VND</p>
+            <p><strong>Danh mục:</strong> ${productData.categoryProduct}</p>
+            <p><strong>Mô tả:</strong> ${productData.descriptionProduct}</p>
+        </div>
         `;
 
-        // Tạo prompt phân tích chuyên sâu
+        // Prompt
         const prompt = `
-        🤖 BẠN LÀ CHUYÊN GIA Tư VẤN LAPTOP CHUYÊN NGHIỆP!
+Bạn là CHUYÊN GIA tư vấn laptop chuyên nghiệp.
 
-        📋 THÔNG TIN PHÂN TÍCH:
-        • Mục đích sử dụng: ${purposeInfo.name} (${purposeInfo.description})
-        • Yêu cầu kỹ thuật cho ${purposeInfo.name}:
-          ${Object.entries(purposeInfo.requirements)
-              .map(([key, value]) => `- ${key.toUpperCase()}: ${value}`)
-              .join('\n  ')}
-        • Ưu tiên đánh giá: ${purposeInfo.priorities.join(', ')}
+MỤC ĐÍCH SỬ DỤNG:
+- ${purposeInfo.name}: ${purposeInfo.description}
 
-        🔍 SẢN PHẨM CẦN PHÂN TÍCH:
-        ${productHTML}
+YÊU CẦU KỸ THUẬT:
+${Object.entries(purposeInfo.requirements)
+    .map(([k, v]) => `- ${k.toUpperCase()}: ${v}`)
+    .join('\n')}
 
-        📊 YÊU CẦU PHÂN TÍCH CHI TIẾT:
-        Hãy phân tích sản phẩm này cho mục đích "${purposeInfo.name}" và trả về kết quả HTML bao gồm:
+ƯU TIÊN:
+${purposeInfo.priorities.join(', ')}
 
-        1. 🎯 TỔNG QUAN & ĐIỂM SỐ (1-10):
-           - Điểm tổng thể cho mục đích ${purposeInfo.name}
-           - Lý do chấm điểm
+SẢN PHẨM:
+${productHTML}
 
-        2. ✅ ĐIỂM MẠNH:
-           - Những ưu điểm nổi bật phù hợp với ${purposeInfo.name}
-           - So sánh với yêu cầu kỹ thuật
+YÊU CẦU:
+- Phân tích chi tiết theo từng mục
+- Chấm điểm 1-10
+- Trả về HTML đẹp
+- Không bịa thông tin
+`;
 
-        3. ❌ ĐIỂM YẾU & HẠN CHẾ:
-           - Những điểm chưa tốt hoặc thiếu sót
-           - Ảnh hưởng đến việc sử dụng cho ${purposeInfo.name}
+        // ==============================
+        // 🔥 GROQ API CALL
+        // ==============================
+        const completion = await groq.chat.completions.create({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+                { role: 'system', content: 'Bạn là chuyên gia tư vấn laptop.' },
+                { role: 'user', content: prompt },
+            ],
+            temperature: 0.4,
+            max_tokens: 4000,
+        });
 
-        4. 💡 ĐÁNH GIÁ CHI TIẾT:
-           - CPU: Phù hợp mức độ nào?
-           - GPU: Có đủ mạnh không?
-           - RAM: Đủ để chạy tốt không?
-           - Lưu trữ: SSD/HDD, dung lượng có ổn?
-           - Màn hình: Chất lượng cho mục đích sử dụng
-           - Pin & Tản nhiệt: Đánh giá
-
-        5. 🎮 HIỆU NĂNG DỰ ĐOÁN:
-           - Chạy các ứng dụng ${purposeInfo.description} như thế nào?
-           - FPS game (nếu gaming), tốc độ render (nếu design/video)
-
-        6. 💰 GIÁ TRỊ & SO SÁNH:
-           - Có đáng đồng tiền không?
-           - So với các sản phẩm cùng tầm giá
-
-        7. 🔮 KẾT LUẬN & KHUYẾN NGHỊ:
-           - Có nên mua cho mục đích ${purposeInfo.name} không?
-           - Ai phù hợp với sản phẩm này?
-           - Lời khuyên cuối cùng
-
-        ⚠️ QUAN TRỌNG:
-        - Phân tích KHÁCH QUAN, CHÍNH XÁC
-        - Dựa trên thông số kỹ thuật thực tế
-        - Trả về HTML đẹp mắt, dễ đọc với màu sắc và icon
-        - Không bịa đặt thông tin không có
-        - Ngôn ngữ thân thiện, chuyên nghiệp
-        `;
-
-        const result = await model.generateContent(prompt);
-        const analysis = result.response.text();
+        const analysis = completion.choices[0].message.content;
 
         return {
             success: true,
-            analysis: analysis.replace(/```(html|plaintext)?\n?/g, '').trim(),
+            analysis: analysis.replace(/```(html)?/g, '').trim(),
             purpose: purposeInfo.name,
             productName: productData.nameProduct,
-            productId: productId,
+            productId,
         };
     } catch (error) {
-        console.error('Lỗi khi phân tích sản phẩm:', error);
+        console.error(error);
         return {
             success: false,
             error: error.message,
             analysis: `
-                <div style="padding: 20px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; color: #c53030;">
-                    <h3 style="color: #c53030; margin-bottom: 10px;">❌ Lỗi phân tích</h3>
-                    <p>Xin lỗi, hiện tại không thể phân tích sản phẩm này. Vui lòng thử lại sau!</p>
-                    <p style="font-size: 12px; color: #a0a0a0;">Lỗi: ${error.message}</p>
-                </div>
+            <div style="padding:16px;color:#c53030">
+                ❌ Không thể phân tích sản phẩm lúc này
+            </div>
             `,
         };
     }
 }
 
-module.exports = {
-    analyzeProductForPurpose, // Hàm mới cho modal AI review
-};
+module.exports = { analyzeProductForPurpose };

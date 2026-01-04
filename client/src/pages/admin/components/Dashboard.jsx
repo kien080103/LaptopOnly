@@ -42,9 +42,15 @@ const Dashboard = () => {
         setAnimateNumbers(true);
     }, []);
 
+    const yearlyData = [
+        { year: 2024, revenue: 44, profit: 34 },
+        { year: 2025, revenue: 135, profit: 105 },
+        { year: 2026, revenue: 38, profit: 23 },
+    ];
+
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
-        customers: { count: 0, growth: 0, isPositive: true },
+        customers: { count: 1543, growth: 12.5, isPositive: true },
         orders: { count: 0, growth: 0, isPositive: true },
         revenue: { count: 0, growth: 0, isPositive: true },
         products: { count: 0, growth: 0, isPositive: true },
@@ -62,6 +68,7 @@ const Dashboard = () => {
                 const response = await requestGetStatistic();
                 setStats(response.metadata.stats);
                 setMonthlyData(response.metadata.monthlyData);
+                // setYearlyData(response.metadata.yearlyData);
                 setRecentOrders(response.metadata.recentOrders);
                 setTopProducts(
                     response.metadata.topProducts.map((product, index) => ({
@@ -207,32 +214,60 @@ const Dashboard = () => {
                 {/* Revenue Chart */}
                 <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
                     <div className="flex items-center justify-between mb-6">
+                        {/* Title */}
                         <div>
-                            <h3 className="text-xl font-semibold text-slate-800">Biểu Đồ Doanh Thu Theo Tháng</h3>
-                            <p className="text-slate-500 text-sm mt-1">Phân tích chi tiết doanh thu và lợi nhuận</p>
+                            <h3 className="text-xl font-semibold text-slate-800">
+                                Biểu Đồ Doanh Thu Theo {activeTab === 'month' ? 'Tháng' : 'Năm'}
+                            </h3>
+                            <p className="text-slate-500 text-sm mt-1">
+                                Thống kê doanh thu và lợi nhuận theo {activeTab === 'month' ? 'từng tháng' : 'từng năm'}
+                            </p>
+                        </div>
+
+                        {/* Switch button */}
+                        <div className="flex space-x-2">
+                            <button
+                                onClick={() => setActiveTab('month')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                                    activeTab === 'month'
+                                        ? 'bg-blue-500 text-white shadow'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                            >
+                                Theo tháng
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab('year')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                                    activeTab === 'year'
+                                        ? 'bg-blue-500 text-white shadow'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                            >
+                                Theo năm
+                            </button>
                         </div>
                     </div>
                     <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={monthlyData}>
-                                <defs>
-                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
-                                    </linearGradient>
-                                    <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
-                                <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                                <YAxis stroke="#64748b" fontSize={12} />
+                            <AreaChart data={activeTab === 'month' ? monthlyData : yearlyData}>
+                                <XAxis
+                                    dataKey={activeTab === 'month' ? 'month' : 'year'}
+                                    tickFormatter={(value) => (activeTab === 'month' ? `${value}` : `Năm ${value}`)}
+                                    interval={0}
+                                    stroke="#ff0000ff"
+                                    fontSize={12}
+                                />
                                 <Tooltip
+                                    formatter={(value) => `${value.toLocaleString('vi-VN')}M đ`}
+                                    labelFormatter={(label) =>
+                                        activeTab === 'month' ? `Tháng ${label}` : `Năm ${label}`
+                                    }
                                     contentStyle={{
                                         backgroundColor: 'white',
-                                        border: 'none',
                                         borderRadius: '12px',
+                                        border: 'none',
                                         boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
                                     }}
                                 />
@@ -243,6 +278,7 @@ const Dashboard = () => {
                                     fillOpacity={1}
                                     fill="url(#colorRevenue)"
                                     strokeWidth={3}
+                                    activeDot={{ r: 6 }}
                                 />
                                 <Area
                                     type="monotone"
@@ -251,7 +287,18 @@ const Dashboard = () => {
                                     fillOpacity={1}
                                     fill="url(#colorProfit)"
                                     strokeWidth={3}
+                                    activeDot={{ r: 6 }}
                                 />
+                                <defs>
+                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4} />
+                                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
+                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -344,7 +391,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 @keyframes fadeIn {
                     from {
                         opacity: 0;

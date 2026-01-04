@@ -4,7 +4,7 @@ import { UserOutlined, PhoneOutlined, MailOutlined, LockOutlined, CalendarOutlin
 import Header from '../components/Header';
 import { Link } from 'react-router-dom';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { requestRegister } from '../config/request';
+import { requestLoginGoogle, requestRegister } from '../config/request';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
@@ -61,7 +61,7 @@ export default function Register() {
 
                     {/* Google */}
                     <div className="flex justify-center mb-6">
-                        <GoogleOAuthProvider clientId="557300558214-bj5j50chf3p3skos4hg3tsfv1ivivtst.apps.googleusercontent.com">
+                        <GoogleOAuthProvider clientId="330602069582-uatt3e8oqga765sn56dc8oq99dctsoih.apps.googleusercontent.com">
                             <GoogleLogin onSuccess={handleSuccess} onError={() => console.log('Login Failed')} />
                         </GoogleOAuthProvider>
                     </div>

@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import useDebounce from '../hooks/useDebounce';
 import { requestLogout, requestReadAllNotication, requestSearchProduct } from '../config/request';
 import moment from 'moment';
+import logo from '../assets/images/logo.png';
 
 function Header() {
     const { dataUser, cart, notication, fetchNotication, newNotication, setNotication } = useStore();
@@ -132,6 +133,25 @@ function Header() {
         />
     );
 
+    // const testMenu = (
+    //     <Menu
+    //         items={[
+    //             {
+    //                 key: 'test',
+    //                 label: <Link to="/test">Test</Link>,
+    //             },
+    //             {
+    //                 key: 'test2',
+    //                 label: <Link to="/test2">Test2</Link>,
+    //             },
+    //             {
+    //                 key: 'test3',
+    //                 label: <Link to="/test3">Test3</Link>,
+    //             },
+    //         ]}
+    //     />
+    // );
+
     const userMenu = (
         <Menu
             items={[
@@ -157,10 +177,7 @@ function Header() {
                 {/* Logo */}
                 <Link to="/">
                     <div className="flex-shrink-0">
-                        <img
-                            src="https://itviec.com/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsiZGF0YSI6OTE3NDg5LCJwdXIiOiJibG9iX2lkIn19--b3fa056d83b06e9e09f18e0ad49b01eb17d110ec/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJwbmciLCJyZXNpemVfdG9fbGltaXQiOlszMDAsMzAwXX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--e1d036817a0840c585f202e70291f5cdd058753d/cellphones-logo.png"
-                            alt="Logo"
-                        />
+                        <img src={logo} alt="Logo" className="h-25 w-auto" />
                     </div>
                 </Link>
 
@@ -249,6 +266,24 @@ function Header() {
                         </div>
                     )}
                 </div>
+                {/*testMenu*/}
+
+                {/* <Dropdown overlay={testMenu} placement="bottomRight" arrow trigger={['click']}>
+                    <button
+                        type="button"
+                        className=" flex items-center space-x-1text-white text-sm font-medium border border-white
+                rounded-full
+                px-4 py-2
+                bg-transparent
+                transition-all duration-200
+                hover:bg-white
+                hover:text-red-600
+                cursor-pointer
+            "
+                    >
+                        Test Menu
+                    </button>
+                </Dropdown> */}
 
                 {/* Right Side Buttons */}
                 <div className="flex items-center space-x-4">

@@ -12,6 +12,8 @@ import { useStore } from './hooks/useStore';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import ModalAIReview from './components/ModalAIReview';
+import Chatbot from './components/ChatBot';
+import { useNavigate } from 'react-router-dom';
 
 function App() {
     useEffect(() => {
@@ -24,7 +26,16 @@ function App() {
         });
     }, []);
 
-    const { categories } = useStore();
+    const { categories, dataUser } = useStore();
+
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (dataUser?.role === 'admin') {
+            navigate('/admin');
+        } else {
+            navigate('/');
+        }
+    }, [dataUser]);
 
     return (
         <div>
@@ -61,6 +72,8 @@ function App() {
                 <div data-aos="fade-up" data-aos-delay="600">
                     <Blog />
                 </div>
+
+                <Chatbot />
             </main>
 
             <footer>

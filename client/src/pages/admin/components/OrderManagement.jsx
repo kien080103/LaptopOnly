@@ -13,6 +13,9 @@ function OrderManagement() {
 
     const fetchOrders = async () => {
         const res = await requestGetPayments();
+        const sortedOrders = res.metadata.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        setOrders(sortedOrders);
         setOrders(res.metadata);
     };
 
@@ -32,6 +35,174 @@ function OrderManagement() {
         } catch (error) {
             message.error('Cập nhật trạng thái thất bại');
         }
+    };
+    const printBill = (order) => {
+        const printWindow = window.open('', '_blank');
+
+        printWindow.document.write(`
+    <html>
+    <head>
+        <title>Hóa đơn bán hàng</title>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                background: #f4f6f8;
+                padding: 20px;
+                color: #333;
+            }
+            .invoice {
+                max-width: 800px;
+                margin: auto;
+                background: #fff;
+                padding: 24px;
+                border-radius: 10px;
+            }
+            h1 {
+                text-align: center;
+                color: #e53935;
+                margin-bottom: 4px;
+            }
+            .sub-title {
+                text-align: center;
+                font-size: 14px;
+                color: #666;
+                margin-bottom: 20px;
+            }
+            .section {
+                margin-bottom: 24px;
+            }
+            .section-title {
+                font-weight: bold;
+                font-size: 16px;
+                margin-bottom: 12px;
+                border-left: 4px solid #e53935;
+                padding-left: 8px;
+            }
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px 20px;
+                font-size: 14px;
+            }
+            .info-grid span {
+                font-weight: 600;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            table th, table td {
+                border-bottom: 1px solid #eaeaea;
+                padding: 10px;
+                text-align: left;
+                font-size: 14px;
+            }
+            table th {
+                background: #f8f9fa;
+            }
+            .product-img {
+                width: 60px;
+                height: 60px;
+                object-fit: contain;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+            }
+            .total {
+                text-align: right;
+                font-size: 18px;
+                font-weight: bold;
+                color: #e53935;
+                margin-top: 16px;
+            }
+            .footer {
+                text-align: center;
+                margin-top: 32px;
+                font-size: 14px;
+                color: #555;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="invoice">
+            <h1>HÓA ĐƠN BÁN HÀNG</h1>
+            <div class="sub-title">Website Bán Laptop Only</div>
+
+            <!-- Thông tin đơn hàng -->
+            <div class="section">
+                <div class="section-title">Thông tin đơn hàng</div>
+                <div class="info-grid">
+                    <div><span>Mã đơn:</span> ${order.idPayment}</div>
+                    <div><span>Ngày đặt:</span> ${moment(order.createdAt).format('DD/MM/YYYY HH:mm')}</div>
+                    <div><span>Trạng thái:</span> ${order.status}</div>
+                    <div><span>Thanh toán:</span> ${order.typePayment}</div>
+                </div>
+            </div>
+
+            <!-- Thông tin nhận hàng -->
+            <div class="section">
+                <div class="section-title">Thông tin nhận hàng</div>
+                <div class="info-grid">
+                    <div><span>Họ tên:</span> ${order.fullName}</div>
+                    <div><span>SĐT:</span> ${order.phoneNumber}</div>
+                    <div><span>Email:</span> ${order.email}</div>
+                    <div><span>Địa chỉ:</span> ${order.address}</div>
+                </div>
+            </div>
+
+            <!-- Danh sách sản phẩm -->
+            <div class="section">
+                <div class="section-title">Sản phẩm</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hình ảnh</th>
+                            <th>Tên sản phẩm</th>
+                            <th>SL</th>
+                            <th>Đơn giá</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${order.items
+                            .map(
+                                (item) => `
+                                <tr>
+                                    <td>
+                                        <img
+                                            src="${import.meta.env.VITE_URL_IMAGE}/uploads/products/${
+                                    item.product.imagesProduct.split(',')[0]
+                                }"
+                                            class="product-img"
+                                        />
+                                    </td>
+                                    <td>${item.product.nameProduct}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>${item.price.toLocaleString('vi-VN')}đ</td>
+                                    <td>${(item.price * item.quantity).toLocaleString('vi-VN')}đ</td>
+                                </tr>
+                            `,
+                            )
+                            .join('')}
+                    </tbody>
+                </table>
+
+                <div class="total">
+                    Tổng cộng: ${order.totalPrice.toLocaleString('vi-VN')} đ
+                </div>
+            </div>
+
+            <div class="footer">
+                Cảm ơn quý khách đã mua hàng ❤️<br/>
+                Hẹn gặp lại!
+            </div>
+        </div>
+    </body>
+    </html>
+    `);
+
+        printWindow.document.close();
+        printWindow.print();
     };
 
     const statusMap = {
@@ -80,7 +251,7 @@ function OrderManagement() {
             dataIndex: 'totalPrice',
             key: 'totalPrice',
             sorter: (a, b) => a.totalPrice - b.totalPrice,
-            render: (totalPrice) => `${totalPrice.toLocaleString('vi-VN')} đ`,
+            render: (totalPrice) => `${totalPrice.toLocaleString('vi-VN')}đ`,
         },
         {
             title: 'Trạng thái',
@@ -170,7 +341,7 @@ function OrderManagement() {
                                 {moment(selectedOrder.createdAt).format('DD/MM/YYYY HH:mm')}
                             </Descriptions.Item>
                             <Descriptions.Item label="Tổng tiền">
-                                {selectedOrder.totalPrice.toLocaleString('vi-VN')} đ
+                                {selectedOrder.totalPrice.toLocaleString('vi-VN')}đ
                             </Descriptions.Item>
                             <Descriptions.Item label="Trạng thái">
                                 <Tag color={statusMap[selectedOrder.status]?.color}>
@@ -209,12 +380,36 @@ function OrderManagement() {
                                     title: 'Đơn giá',
                                     dataIndex: 'price',
                                     key: 'price',
-                                    render: (price) => `${price.toLocaleString('vi-VN')} đ`,
+                                    render: (price) => `${price.toLocaleString('vi-VN')}đ`,
                                 },
                                 {
                                     title: 'Thành tiền',
                                     key: 'total',
-                                    render: (_, item) => `${(item.price * item.quantity).toLocaleString('vi-VN')} đ`,
+                                    render: (_, item) => `${(item.price * item.quantity).toLocaleString('vi-VN')}đ`,
+                                },
+                                {
+                                    //buton printBill
+                                    title: 'In hóa đơn',
+                                    key: 'print',
+                                    render: (_, __, index) => {
+                                        const rowSpan = index === 0 ? selectedOrder.items.length : 0;
+
+                                        return {
+                                            children: (
+                                                <Button
+                                                    type="default"
+                                                    size="small"
+                                                    onClick={() => printBill(selectedOrder)}
+                                                    disabled={selectedOrder.status !== 'success'}
+                                                >
+                                                    In hóa đơn
+                                                </Button>
+                                            ),
+                                            props: {
+                                                rowSpan,
+                                            },
+                                        };
+                                    },
                                 },
                             ]}
                         />

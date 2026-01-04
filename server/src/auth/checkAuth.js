@@ -40,6 +40,40 @@ const authAdmin = async (req, res, next) => {
         next(error);
     }
 };
+// const authAdmin = async (req, res, next) => {
+//     try {
+//         const authHeader = req.headers.authorization;
+//         if (!authHeader) {
+//             throw new AuthFailureError('Bạn chưa đăng nhập');
+//         }
+
+//         const token = authHeader.split(' ')[1];
+//         if (!token) {
+//             throw new AuthFailureError('Token không hợp lệ');
+//         }
+
+//         const decoded = await verifyToken(token);
+//         const { id } = decoded;
+
+//         const user = await modelUser.findOne({
+//             where: { id },
+//             attributes: ['id', 'username', 'isAdmin'],
+//         });
+
+//         if (!user) {
+//             throw new AuthFailureError('Tài khoản không tồn tại');
+//         }
+
+//         if (user.isAdmin !== 1) {
+//             throw new AuthFailureError('Bạn không có quyền truy cập');
+//         }
+
+//         req.user = user;
+//         next();
+//     } catch (error) {
+//         next(error);
+//     }
+// };
 
 module.exports = {
     asyncHandler,

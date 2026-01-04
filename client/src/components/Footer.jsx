@@ -28,12 +28,12 @@ function Footer() {
                             <div className="space-y-3 text-gray-300">
                                 <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
                                     <p className="text-sm text-gray-400">Mua hàng & Bảo hành</p>
-                                    <p className="text-xl font-bold text-red-400">1800.2097</p>
+                                    <p className="text-xl font-bold text-red-400">1800.0103</p>
                                     <p className="text-xs text-gray-500">7h30 - 22h00</p>
                                 </div>
                                 <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
                                     <p className="text-sm text-gray-400">Khiếu nại</p>
-                                    <p className="text-xl font-bold text-orange-400">1800.2063</p>
+                                    <p className="text-xl font-bold text-orange-400">1800.0801</p>
                                     <p className="text-xs text-gray-500">8h00 - 21h30</p>
                                 </div>
                             </div>
@@ -168,11 +168,11 @@ function Footer() {
                     <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                         <div className="text-center md:text-left">
                             <p className="text-gray-400 text-sm">
-                                © 2024 <span className="text-red-400 font-semibold">CellphoneS</span>. Tất cả quyền được
-                                bảo lưu.
+                                © 2025 <span className="text-red-400 font-semibold">Laptop Only</span>. Tất cả quyền
+                                được bảo lưu.
                             </p>
                             <p className="text-gray-500 text-xs mt-1">
-                                Địa chỉ: 222/1/24 Điện Biên Phủ, P.Võ Thị Sáu, Q.3, TP.HCM
+                                Địa chỉ: Đại học Vinh - Số 182 Lê Duẩn, Phường Hưng Dũng, Thành phố Vinh, Tỉnh Nghệ An
                             </p>
                         </div>
 

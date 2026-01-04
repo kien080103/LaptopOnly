@@ -2,9 +2,10 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { requestRefreshToken } from './request';
 
-export class ApiClient {
+class ApiClient {
     constructor(baseURL) {
-        this.baseURL = baseURL || import.meta.env.VITE_API_URL || '';
+        this.baseURL = baseURL || import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
         this.axiosInstance = axios.create({
             baseURL: this.baseURL,
             timeout: 10000,
@@ -17,97 +18,103 @@ export class ApiClient {
         this.setupInterceptors();
     }
 
+    // ================= INTERCEPTORS =================
     setupInterceptors() {
-        // Request interceptor
+        // 👉 REQUEST
         this.axiosInstance.interceptors.request.use(
-            (config) => config,
+            (config) => {
+                const accessToken = Cookies.get('accessToken');
+
+                if (accessToken) {
+                    config.headers.Authorization = `Bearer ${accessToken}`;
+                }
+
+                return config;
+            },
             (error) => Promise.reject(error),
         );
 
-        // Response interceptor
+        // 👉 RESPONSE
         this.axiosInstance.interceptors.response.use(
             (response) => response,
             async (error) => {
                 const originalRequest = error.config;
-                if (error.response?.status === 401 && !originalRequest._retry) {
-                    if (!this.isLoggedIn()) {
-                        this.handleAuthFailure();
-                        return Promise.reject(error);
-                    }
 
-                    if (this.isRefreshing) {
-                        return new Promise((resolve, reject) => {
-                            this.failedQueue.push({ resolve, reject });
-                        })
-                            .then(() => this.axiosInstance(originalRequest))
-                            .catch((err) => Promise.reject(err));
-                    }
-
-                    originalRequest._retry = true;
-                    this.isRefreshing = true;
-
-                    try {
-                        await this.refreshToken();
-                        this.processQueue(null);
-                        return this.axiosInstance(originalRequest);
-                    } catch (refreshError) {
-                        this.processQueue(refreshError);
-                        this.handleAuthFailure();
-                        return Promise.reject(refreshError);
-                    } finally {
-                        this.isRefreshing = false;
-                    }
+                // ❌ Không có response → lỗi mạng
+                if (!error.response) {
+                    return Promise.reject(error);
                 }
 
-                return Promise.reject(error);
+                // ❌ Không phải 401 → bỏ qua
+                if (error.response.status !== 401) {
+                    return Promise.reject(error);
+                }
+
+                // ❌ Tránh loop vô hạn
+                if (originalRequest._retry) {
+                    this.logoutAndRedirect();
+                    return Promise.reject(error);
+                }
+
+                // ❌ Chưa login
+                if (!this.isLoggedIn()) {
+                    this.logoutAndRedirect();
+                    return Promise.reject(error);
+                }
+
+                // ⏳ Đang refresh → xếp hàng
+                if (this.isRefreshing) {
+                    return new Promise((resolve, reject) => {
+                        this.failedQueue.push({ resolve, reject });
+                    })
+                        .then(() => this.axiosInstance(originalRequest))
+                        .catch((err) => Promise.reject(err));
+                }
+
+                // 🔁 REFRESH TOKEN
+                originalRequest._retry = true;
+                this.isRefreshing = true;
+
+                try {
+                    await requestRefreshToken();
+                    this.processQueue(null);
+                    return this.axiosInstance(originalRequest);
+                } catch (refreshError) {
+                    this.processQueue(refreshError);
+                    this.logoutAndRedirect();
+                    return Promise.reject(refreshError);
+                } finally {
+                    this.isRefreshing = false;
+                }
             },
         );
     }
 
-    async refreshToken() {
-        try {
-            await requestRefreshToken();
-            console.log('Token refreshed successfully');
-        } catch (error) {
-            console.error('Failed to refresh token:', error);
-            throw error;
-        }
-    }
-
+    // ================= HELPERS =================
     processQueue(error) {
         this.failedQueue.forEach(({ resolve, reject }) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve();
-            }
+            error ? reject(error) : resolve();
         });
-
         this.failedQueue = [];
-    }
-
-    handleAuthFailure() {
-        this.logout().finally(() => {
-            window.location.href = '/login';
-        });
     }
 
     isLoggedIn() {
         return Cookies.get('logged') === '1';
     }
 
-    async logout() {
+    async logoutAndRedirect() {
         try {
             await this.axiosInstance.get('/api/users/logout');
-        } catch (error) {
-            console.error('Logout error:', error);
+        } catch (_) {
+            // ignore
+        } finally {
+            Cookies.remove('accessToken');
+            Cookies.remove('logged');
+            window.location.href = '/login';
         }
     }
 
-    checkAuthStatus() {
-        return this.isLoggedIn();
-    }
-
+    // ================= METHODS =================
     get(url, config) {
         return this.axiosInstance.get(url, config);
     }
@@ -129,5 +136,5 @@ export class ApiClient {
     }
 }
 
-// Export instance
 export const apiClient = new ApiClient();
+export default apiClient;

@@ -9,6 +9,8 @@ const websiteRoutes = require('./website.routes');
 const messageRoutes = require('./message.routes');
 const previewProductRoutes = require('./previewProduct.routes');
 const noticationRoutes = require('./notication.routes');
+const blogRoutes = require('./blog.routes');
+const chatbotRoutes = require('./chatbot.routes');
 
 function routes(app) {
     app.use('/api/user', userRoutes);
@@ -22,6 +24,8 @@ function routes(app) {
     app.use('/api/message', messageRoutes);
     app.use('/api/preview-product', previewProductRoutes);
     app.use('/api/notication', noticationRoutes);
+    app.use('/api/blog', blogRoutes);
+    app.use('/api/chatbot', chatbotRoutes);
 }
 
 module.exports = routes;

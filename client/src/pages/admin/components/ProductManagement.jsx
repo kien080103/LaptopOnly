@@ -51,6 +51,8 @@ function ProductManagement() {
     const [editingProduct, setEditingProduct] = useState(null);
     const [searchText, setSearchText] = useState('');
     const [form] = Form.useForm();
+    const [openDetail, setOpenDetail] = useState(false);
+    const [productDetail, setProductDetail] = useState(null);
 
     const { categories } = useStore();
 
@@ -75,6 +77,12 @@ function ProductManagement() {
         setEditingProduct(record);
         form.setFieldsValue(record);
         setIsModalVisible(true);
+    };
+
+    const handleShow = (record) => {
+        if (!record) return;
+        setProductDetail(record);
+        setOpenDetail(true);
     };
 
     const handleDelete = (id) => {
@@ -162,9 +170,8 @@ function ProductManagement() {
             width: 260,
             render: (text, record) => (
                 <div className="flex items-center gap-3 text-sm">
-                    <Avatar
-                        size={60}
-                        shape="square"
+                    <img
+                        className="w-20 h-20 rounded-md object-cover"
                         src={`${import.meta.env.VITE_URL_IMAGE}/uploads/products/${
                             record.imagesProduct.split(', ')[0]
                         }`}
@@ -259,7 +266,13 @@ function ProductManagement() {
                         />
                     </Tooltip>
                     <Tooltip title="Xem">
-                        <Button size="small" icon={<EyeOutlined />} />
+                        <Button
+                            size="small"
+                            type="primary"
+                            ghost
+                            icon={<EyeOutlined />}
+                            onClick={() => handleShow(record)}
+                        />
                     </Tooltip>
                     <Tooltip title="Xoá">
                         <Button size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
@@ -276,7 +289,6 @@ function ProductManagement() {
                     Quản lý sản phẩm
                 </Title>
             </div>
-
             {/* Search & Actions */}
             <Card className="mb-4 shadow-sm">
                 <div className="flex flex-col sm:flex-row justify-between gap-3 ">
@@ -299,7 +311,6 @@ function ProductManagement() {
                     </Button>
                 </div>
             </Card>
-
             {/* Table */}
             <Card className="shadow-sm">
                 <Table
@@ -315,7 +326,6 @@ function ProductManagement() {
                     }}
                 />
             </Card>
-
             {/* Modal Add/Edit */}
             <Modal
                 title={
@@ -472,14 +482,121 @@ function ProductManagement() {
                     </Form.List>
                 </Form>
             </Modal>
+            {/* Modal Chi tiết sản phẩm */}
 
-            <style jsx>{`
-                .custom-table .ant-table-thead > tr > th {
-                    background: #2563eb;
-                    color: white;
-                    font-weight: 500;
-                }
-            `}</style>
+            <Modal
+                title={<span style={{ fontSize: '1.25rem', fontWeight: 700 }}>Chi tiết sản phẩm</span>}
+                open={openDetail}
+                onCancel={() => {
+                    setOpenDetail(false);
+                    setProductDetail(null);
+                }}
+                footer={null}
+                destroyOnClose
+                width={900} // Tăng nhẹ chiều rộng để không gian thở tốt hơn
+                centered
+            >
+                {!productDetail ? (
+                    <div className="py-10 text-center text-gray-400">Không có dữ liệu</div>
+                ) : (
+                    <Row gutter={[32, 24]} className="py-4">
+                        {/* Cột Trái: Hình ảnh */}
+                        <Col xs={24} md={10}>
+                            <div
+                                style={{
+                                    borderRadius: 12,
+                                    overflow: 'hidden',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                                    border: '1px solid #f0f0f0',
+                                }}
+                            >
+                                <img
+                                    src={`${import.meta.env.VITE_URL_IMAGE}/uploads/products/${
+                                        productDetail.imagesProduct?.split(', ')[0]
+                                    }`}
+                                    alt={productDetail.nameProduct}
+                                    style={{ width: '100%', display: 'block', transition: 'transform 0.3s' }}
+                                    className="hover:scale-105"
+                                />
+                            </div>
+                        </Col>
+
+                        {/* Cột Phải: Thông tin chi tiết */}
+                        <Col xs={24} md={14}>
+                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                <Title level={3} style={{ marginBottom: 8, color: '#1a1a1a' }}>
+                                    {productDetail.nameProduct}
+                                </Title>
+
+                                <div style={{ marginBottom: 16 }}>
+                                    <Text style={{ fontSize: '1.5rem', color: '#ff4d4f', fontWeight: 700 }}>
+                                        {productDetail.priceProduct?.toLocaleString()} đ
+                                    </Text>
+                                    {productDetail.discountProduct > 0 && (
+                                        <Tag color="red" style={{ marginLeft: 12, borderRadius: 4 }}>
+                                            -{productDetail.discountProduct}%
+                                        </Tag>
+                                    )}
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <Text type="secondary">
+                                        Tình trạng:
+                                        <Text
+                                            strong
+                                            className="ml-2"
+                                            style={{ color: productDetail.stockProduct > 0 ? '#52c41a' : '#ff4d4f' }}
+                                        >
+                                            {productDetail.stockProduct > 0
+                                                ? `Còn hàng (${productDetail.stockProduct})`
+                                                : 'Hết hàng'}
+                                        </Text>
+                                    </Text>
+                                </div>
+
+                                <Divider style={{ margin: '16px 0' }} />
+
+                                <div>
+                                    <Title level={5}>Mô tả sản phẩm</Title>
+                                    <div
+                                        style={{
+                                            maxHeight: '300px',
+                                            overflowY: 'auto',
+                                            paddingRight: '8px',
+                                            color: '#4a4a4a',
+                                            lineHeight: '1.6',
+                                        }}
+                                        className="custom-scrollbar"
+                                        dangerouslySetInnerHTML={{
+                                            __html: productDetail.descriptionProduct,
+                                        }}
+                                    />
+                                </div>
+                            </Space>
+                        </Col>
+                    </Row>
+                )}
+            </Modal>
+            {/* Custom styles */}
+            <style jsx>
+                {`
+                    .custom-table .ant-table-thead > tr > th {
+                        background: #2563eb;
+                        color: white;
+                        font-weight: 500;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar {
+                        width: 4px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb {
+                        background: #e8e8e8;
+                        border-radius: 10px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                        background: #d1d1d1;
+                    }
+                `}
+            </style>
         </div>
     );
 }

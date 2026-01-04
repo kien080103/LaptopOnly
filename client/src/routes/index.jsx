@@ -3,6 +3,7 @@ import Admin from '../pages/admin';
 import CartUser from '../pages/Cart';
 import Category from '../pages/Category';
 import CheckOut from '../pages/CheckOut';
+import DetailBlog from '../pages/DetailBlog';
 import DetailProduct from '../pages/DetailProduct';
 import ForgotPassword from '../pages/ForgotPassword';
 import InfoUser from '../pages/InfoUser';
@@ -66,5 +67,9 @@ export const routes = [
     {
         path: '/forgot-password',
         component: <ForgotPassword />,
+    },
+    {
+        path: '/blog/:id',
+        component: <DetailBlog />,
     },
 ];

@@ -1,4 +1,19 @@
+import { useEffect, useState } from 'react';
+
+import { requestGetAllBlog } from '../config/request';
+import { Link } from 'react-router-dom';
+
 function Blog() {
+    const [blogs, setBlogs] = useState([]);
+
+    useEffect(() => {
+        const fetchBlogs = async () => {
+            const res = await requestGetAllBlog();
+            setBlogs(res.metadata);
+        };
+        fetchBlogs();
+    }, []);
+
     const banners = [
         {
             img: 'https://cdni.dienthoaivui.com.vn/690x300,webp,q100/https://dashboard.dienthoaivui.com.vn/uploads/wp-content/uploads/images/7c18741212c12b8e680ac044fff2be13.png',
@@ -27,24 +42,26 @@ function Blog() {
 
             {/* Danh sách blog */}
             <div className="grid grid-cols-3 gap-6">
-                {banners.map((banner, index) => (
-                    <div
-                        key={index}
-                        className="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition cursor-pointer"
-                    >
-                        <div className="overflow-hidden">
-                            <img
-                                src={banner.img}
-                                alt={banner.alt}
-                                className="w-full h-40 object-cover hover:scale-105 transition duration-300"
-                            />
+                {blogs.map((banner, index) => (
+                    <Link to={`/blog/${banner.id}`}>
+                        <div
+                            key={index}
+                            className="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition cursor-pointer"
+                        >
+                            <div className="overflow-hidden">
+                                <img
+                                    src={`${import.meta.env.VITE_API_URL}/uploads/blogs/${banner.image}`}
+                                    alt={banner.title}
+                                    className="w-full h-40 object-cover hover:scale-105 transition duration-300"
+                                />
+                            </div>
+                            <div className="p-3">
+                                <h5 className="text-sm font-semibold text-gray-800 hover:text-red-500 transition">
+                                    {banner.title}
+                                </h5>
+                            </div>
                         </div>
-                        <div className="p-3">
-                            <h5 className="text-sm font-semibold text-gray-800 hover:text-red-500 transition">
-                                {banner.title}
-                            </h5>
-                        </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </div>

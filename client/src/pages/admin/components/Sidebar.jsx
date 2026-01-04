@@ -1,4 +1,5 @@
 import { Layout, Menu, Typography } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import {
     AppstoreOutlined,
     ShoppingCartOutlined,
@@ -11,12 +12,20 @@ import {
     DashboardOutlined,
     GiftOutlined,
     SettingOutlined,
+    FileOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
 const { Title } = Typography;
 
 function Sidebar({ collapsed, token, activeTab, setActiveTab }) {
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate('/login');
+    };
+
     return (
         <Sider
             trigger={null}
@@ -43,7 +52,7 @@ function Sidebar({ collapsed, token, activeTab, setActiveTab }) {
                     {!collapsed && (
                         <span className="flex items-center gap-3">
                             <LaptopOutlined className="text-2xl" />
-                            <span className="text-xl tracking-wide">LapTop Shop</span>
+                            <span className="text-xl tracking-wide">LapTop Only</span>
                         </span>
                     )}
                     {collapsed && (
@@ -106,6 +115,11 @@ function Sidebar({ collapsed, token, activeTab, setActiveTab }) {
                             icon: <GiftOutlined className="text-lg" />,
                             label: <span className="text-sm font-medium">Quản lý mã giảm giá</span>,
                         },
+                        {
+                            key: 'blog',
+                            icon: <FileOutlined className="text-lg" />,
+                            label: <span className="text-sm font-medium">Quản lý blog</span>,
+                        },
                     ]}
                 />
             </div>
@@ -131,16 +145,18 @@ function Sidebar({ collapsed, token, activeTab, setActiveTab }) {
 
                 <Menu
                     mode="inline"
-                    style={{
-                        border: 'none',
-                        background: 'transparent',
-                    }}
                     theme="dark"
+                    style={{ border: 'none', background: 'transparent' }}
+                    onClick={({ key }) => {
+                        if (key === 'logout') {
+                            handleLogout();
+                        }
+                    }}
                     items={[
                         {
                             key: 'logout',
                             icon: <LogoutOutlined className="text-lg" />,
-                            label: <span className="text-sm">Đăng xuất</span>,
+                            label: <span onClick={handleLogout}>Đăng xuất</span>,
                             className: 'logout-item',
                         },
                     ]}

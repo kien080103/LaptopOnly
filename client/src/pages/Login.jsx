@@ -4,9 +4,10 @@ import { EyeInvisibleOutlined, EyeTwoTone, GoogleOutlined } from '@ant-design/ic
 import { Link } from 'react-router-dom';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import Header from '../components/Header';
-import { requestLogin } from '../config/request';
+import { requestLogin, requestLoginGoogle } from '../config/request';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/images/logo1.png';
 
 function Login() {
     const [form] = Form.useForm();
@@ -38,7 +39,7 @@ function Login() {
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
-            router.push('/');
+            navigate('/');
         } catch (error) {
             console.error('Login failed', error);
         }
@@ -56,11 +57,8 @@ function Login() {
                 <div className="flex-1 bg-white p-12 flex flex-col justify-center">
                     <div className="max-w-lg">
                         {/* Logo */}
-                        <div className="flex items-center mb-8 space-x-3">
-                            <img
-                                src="https://itviec.com/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsiZGF0YSI6OTE3NDg5LCJwdXIiOiJibG9iX2lkIn19--b3fa056d83b06e9e09f18e0ad49b01eb17d110ec/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJwbmciLCJyZXNpemVfdG9fbGltaXQiOlszMDAsMzAwXX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--e1d036817a0840c585f202e70291f5cdd058753d/cellphones-logo.png"
-                                alt=""
-                            />
+                        <div className="flex items-center mb-6 space-x-3">
+                            <img src={logo} alt="Logo" className="h-30 w-auto" />
                         </div>
 
                         {/* Title */}
@@ -145,7 +143,7 @@ function Login() {
                         </div>
 
                         <div className="mt-4">
-                            <GoogleOAuthProvider clientId="557300558214-bj5j50chf3p3skos4hg3tsfv1ivivtst.apps.googleusercontent.com">
+                            <GoogleOAuthProvider clientId="330602069582-uatt3e8oqga765sn56dc8oq99dctsoih.apps.googleusercontent.com">
                                 <GoogleLogin onSuccess={handleSuccess} onError={() => console.log('Login Failed')} />
                             </GoogleOAuthProvider>
                         </div>
