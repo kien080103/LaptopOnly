@@ -1,5 +1,6 @@
 # ===== ENV FILES =====
 .env
+.env.*
 .env.local
 .env.development
 .env.production
